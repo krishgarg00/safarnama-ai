@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
-import { getAllStays, createStay } from "../services/stay.service";
+import {
+  createStay,
+  getAllStays,
+  getStayById,
+} from "../services/stay.service";
 
 export const createStayController = async (
   req: Request,
@@ -98,6 +102,58 @@ export const getStays = async (
     res.status(500).json({
       success: false,
       message: "Failed to fetch stays",
+    });
+  }
+};
+
+export const getStay = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const id = req.params.id;
+
+if (typeof id !== "string") {
+  res.status(400).json({
+    success: false,
+    message: "Invalid stay ID",
+  });
+  return;
+}
+
+const stay = await getStayById(id);
+    res.status(200).json({
+      success: true,
+      stay,
+    });
+  } catch (error) {
+    console.error("Error fetching stay:", error);
+
+    if (
+      error instanceof Error &&
+      error.message === "Invalid stay ID"
+    ) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+      return;
+    }
+
+    if (
+      error instanceof Error &&
+      error.message === "Stay not found"
+    ) {
+      res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch stay",
     });
   }
 };

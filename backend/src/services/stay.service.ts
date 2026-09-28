@@ -55,3 +55,18 @@ export const getAllStays = async () => {
 
   return stays;
 };
+
+export const getStayById = async (stayId: string) => {
+  if (!mongoose.Types.ObjectId.isValid(stayId)) {
+    throw new Error("Invalid stay ID");
+  }
+
+  const stay = await Stay.findById(stayId)
+    .populate("host", "name email");
+
+  if (!stay) {
+    throw new Error("Stay not found");
+  }
+
+  return stay;
+};
