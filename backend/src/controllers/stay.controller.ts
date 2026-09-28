@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createStay } from "../services/stay.service";
+import { getAllStays, createStay } from "../services/stay.service";
 
 export const createStayController = async (
   req: Request,
@@ -77,6 +77,27 @@ export const createStayController = async (
     res.status(500).json({
       success: false,
       message: "Failed to create stay",
+    });
+  }
+};
+
+export const getStays = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const stays = await getAllStays();
+
+    res.status(200).json({
+      success: true,
+      stays,
+    });
+  } catch (error) {
+    console.error("Error fetching stays:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch stays",
     });
   }
 };

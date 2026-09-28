@@ -47,3 +47,11 @@ export const createStay = async (stayData: CreateStayData) => {
 
   return stay;
 };
+
+export const getAllStays = async () => {
+  const stays = await Stay.find()
+    .populate("host", "name email")
+    .sort({ createdAt: -1 });   
+
+  return stays;
+};
