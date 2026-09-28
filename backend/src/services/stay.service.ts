@@ -106,3 +106,31 @@ export const updateStay = async (
 
   return updatedStay;
 };
+
+export const deleteStay = async (
+  stayId: string,
+  userId: string,
+  userRole: "HOST" | "ADMIN"
+) => {
+  if (!mongoose.Types.ObjectId.isValid(stayId)) {
+    throw new Error("Invalid stay ID");
+  }
+
+  const stay = await Stay.findById(stayId);
+
+  if (!stay) {
+    throw new Error("Stay not found");
+  }
+
+  // HOST can delete only their own stay
+  if (
+    userRole === "HOST" &&
+    stay.host.toString() !== userId
+  ) {
+    throw new Error("You can only delete your own stays");
+  }
+
+  await Stay.findByIdAndDelete(stayId);
+
+  return stay;
+};  

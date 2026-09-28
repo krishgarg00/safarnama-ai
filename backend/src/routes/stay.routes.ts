@@ -4,6 +4,7 @@ import {
   getStays,
   getStay,
   updateStayController,
+  deleteStayController,
 } from "../controllers/stay.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { authorize } from "../middleware/role.middleware";
@@ -29,6 +30,13 @@ router.put(
   authenticate,
   authorize("HOST", "ADMIN"),
   updateStayController
+);
+
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("HOST", "ADMIN"),
+  deleteStayController
 );
 
 export default router;

@@ -4,6 +4,7 @@ import {
   getAllStays,
   getStayById,
   updateStay,
+  deleteStay,
 } from "../services/stay.service";
 
 export const createStayController = async (
@@ -267,6 +268,86 @@ export const updateStayController = async (
     res.status(500).json({
       success: false,
       message: "Failed to update stay",
+    });
+  }
+};
+
+export const deleteStayController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+      return;
+    }
+
+    const id = req.params.id;
+
+    if (typeof id !== "string") {
+      res.status(400).json({
+        success: false,
+        message: "Invalid stay ID",
+      });
+      return;
+    }
+
+    if (req.user.role !== "HOST" && req.user.role !== "ADMIN") {
+      res.status(403).json({
+        success: false,
+        message: "Only HOST or ADMIN can delete stays",
+      });
+      return;
+    }
+
+    await deleteStay(
+      id,
+      req.user.userId,
+      req.user.role
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Stay deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting stay:", error);
+
+    if (error instanceof Error) {
+      if (error.message === "Invalid stay ID") {
+        res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+        return;
+      }
+
+      if (error.message === "Stay not found") {
+        res.status(404).json({
+          success: false,
+          message: error.message,
+        });
+        return;
+      }
+
+      if (
+        error.message ===
+        "You can only delete your own stays"
+      ) {
+        res.status(403).json({
+          success: false,
+          message: error.message,
+        });
+        return;
+      }
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete stay",
     });
   }
 };
