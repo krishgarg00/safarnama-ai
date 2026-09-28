@@ -69,3 +69,13 @@ export const registerUser = async (
     });
   }
 };
+
+export const getCurrentUser = (
+  req: Request,
+  res: Response
+): void => {
+  res.status(200).json({
+    success: true,
+    user: req.user,
+  });
+};
