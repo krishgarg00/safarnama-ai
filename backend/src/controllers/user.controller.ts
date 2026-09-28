@@ -79,3 +79,14 @@ export const getCurrentUser = (
     user: req.user,
   });
 };
+
+export const testHostAccess = (
+  req: Request,
+  res: Response
+): void => {
+  res.status(200).json({
+    success: true,
+    message: "You have HOST access",
+    user: req.user,
+  });
+};
