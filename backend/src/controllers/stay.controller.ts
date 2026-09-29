@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+
 import {
   createStay,
   getAllStays,
@@ -92,7 +93,83 @@ export const getStays = async (
   res: Response
 ): Promise<void> => {
   try {
-    const stays = await getAllStays();
+    const city =
+      typeof req.query.city === "string"
+        ? req.query.city
+        : undefined;
+
+    const minPrice =
+      typeof req.query.minPrice === "string"
+        ? Number(req.query.minPrice)
+        : undefined;
+
+    const maxPrice =
+      typeof req.query.maxPrice === "string"
+        ? Number(req.query.maxPrice)
+        : undefined;
+
+    const maxGuests =
+      typeof req.query.maxGuests === "string"
+        ? Number(req.query.maxGuests)
+        : undefined;
+
+    const amenities =
+      typeof req.query.amenities === "string"
+        ? req.query.amenities
+            .split(",")
+            .map((amenity) => amenity.trim())
+            .filter(Boolean)
+        : undefined;
+
+    // Validate numeric search parameters
+    if (
+      (minPrice !== undefined &&
+        !Number.isFinite(minPrice)) ||
+      (maxPrice !== undefined &&
+        !Number.isFinite(maxPrice)) ||
+      (maxGuests !== undefined &&
+        !Number.isFinite(maxGuests))
+    ) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid search parameters",
+      });
+      return;
+    }
+
+    // Validate negative values
+    if (
+      (minPrice !== undefined && minPrice < 0) ||
+      (maxPrice !== undefined && maxPrice < 0) ||
+      (maxGuests !== undefined && maxGuests < 1)
+    ) {
+      res.status(400).json({
+        success: false,
+        message: "Search parameters cannot be negative",
+      });
+      return;
+    }
+
+    // Validate price range
+    if (
+      minPrice !== undefined &&
+      maxPrice !== undefined &&
+      minPrice > maxPrice
+    ) {
+      res.status(400).json({
+        success: false,
+        message: "minPrice cannot be greater than maxPrice",
+      });
+      return;
+    }
+
+    const stays = await getAllStays(
+      city,
+      minPrice,
+      maxPrice,
+      maxGuests,
+      amenities
+    );
 
     res.status(200).json({
       success: true,
@@ -115,15 +192,16 @@ export const getStay = async (
   try {
     const id = req.params.id;
 
-if (typeof id !== "string") {
-  res.status(400).json({
-    success: false,
-    message: "Invalid stay ID",
-  });
-  return;
-}
+    if (typeof id !== "string") {
+      res.status(400).json({
+        success: false,
+        message: "Invalid stay ID",
+      });
+      return;
+    }
 
-const stay = await getStayById(id);
+    const stay = await getStayById(id);
+
     res.status(200).json({
       success: true,
       stay,
@@ -183,6 +261,17 @@ export const updateStayController = async (
       return;
     }
 
+    if (
+      req.user.role !== "HOST" &&
+      req.user.role !== "ADMIN"
+    ) {
+      res.status(403).json({
+        success: false,
+        message: "Only HOST or ADMIN can update stays",
+      });
+      return;
+    }
+
     const {
       title,
       description,
@@ -212,14 +301,6 @@ export const updateStayController = async (
         ([, value]) => value !== undefined
       )
     );
-
-    if (req.user.role !== "HOST" && req.user.role !== "ADMIN") {
-        res.status(403).json({
-        success: false,
-        message: "Only HOST or ADMIN can update stays",
-    });
-        return;
-    }
 
     const stay = await updateStay(
       id,
@@ -295,7 +376,10 @@ export const deleteStayController = async (
       return;
     }
 
-    if (req.user.role !== "HOST" && req.user.role !== "ADMIN") {
+    if (
+      req.user.role !== "HOST" &&
+      req.user.role !== "ADMIN"
+    ) {
       res.status(403).json({
         success: false,
         message: "Only HOST or ADMIN can delete stays",

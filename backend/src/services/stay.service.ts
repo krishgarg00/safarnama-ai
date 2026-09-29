@@ -48,10 +48,52 @@ export const createStay = async (stayData: CreateStayData) => {
   return stay;
 };
 
-export const getAllStays = async () => {
-  const stays = await Stay.find()
+export const getAllStays = async (
+  city?: string,
+  minPrice?: number,
+  maxPrice?: number,
+  maxGuests?: number,
+  amenities?: string[],
+) => {
+  const filter: {
+    city?: { $regex: string; $options: string };
+    pricePerNight?: { $gte?: number; $lte?: number };
+    maxGuests?: { $gte: number };
+    amenities?: { $all: string[] };
+  } = {};
+  if (amenities && amenities.length > 0) {
+    filter.amenities = {
+      $all: amenities,
+    };
+  }
+  if (maxGuests !== undefined) {
+    filter.maxGuests = {
+      $gte: maxGuests,
+    };
+  }
+
+  if (city) {
+    filter.city = {
+      $regex: city,
+      $options: "i",
+    };
+  }
+
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    filter.pricePerNight = {};
+
+    if (minPrice !== undefined) {
+      filter.pricePerNight.$gte = minPrice;
+    }
+
+    if (maxPrice !== undefined) {
+      filter.pricePerNight.$lte = maxPrice;
+    }
+  }
+
+  const stays = await Stay.find(filter)
     .populate("host", "name email")
-    .sort({ createdAt: -1 });   
+    .sort({ createdAt: -1 });
 
   return stays;
 };
@@ -61,8 +103,7 @@ export const getStayById = async (stayId: string) => {
     throw new Error("Invalid stay ID");
   }
 
-  const stay = await Stay.findById(stayId)
-    .populate("host", "name email");
+  const stay = await Stay.findById(stayId).populate("host", "name email");
 
   if (!stay) {
     throw new Error("Stay not found");
@@ -75,7 +116,7 @@ export const updateStay = async (
   stayId: string,
   userId: string,
   userRole: "HOST" | "ADMIN",
-  updateData: Partial<CreateStayData>
+  updateData: Partial<CreateStayData>,
 ) => {
   if (!mongoose.Types.ObjectId.isValid(stayId)) {
     throw new Error("Invalid stay ID");
@@ -88,21 +129,14 @@ export const updateStay = async (
   }
 
   // HOST can update only their own stay
-  if (
-    userRole === "HOST" &&
-    stay.host.toString() !== userId
-  ) {
+  if (userRole === "HOST" && stay.host.toString() !== userId) {
     throw new Error("You can only update your own stays");
   }
 
-  const updatedStay = await Stay.findByIdAndUpdate(
-    stayId,
-    updateData,
-    {
-      new: true,
-      runValidators: true,
-    }
-  ).populate("host", "name email");
+  const updatedStay = await Stay.findByIdAndUpdate(stayId, updateData, {
+    new: true,
+    runValidators: true,
+  }).populate("host", "name email");
 
   return updatedStay;
 };
@@ -110,7 +144,7 @@ export const updateStay = async (
 export const deleteStay = async (
   stayId: string,
   userId: string,
-  userRole: "HOST" | "ADMIN"
+  userRole: "HOST" | "ADMIN",
 ) => {
   if (!mongoose.Types.ObjectId.isValid(stayId)) {
     throw new Error("Invalid stay ID");
@@ -123,14 +157,11 @@ export const deleteStay = async (
   }
 
   // HOST can delete only their own stay
-  if (
-    userRole === "HOST" &&
-    stay.host.toString() !== userId
-  ) {
+  if (userRole === "HOST" && stay.host.toString() !== userId) {
     throw new Error("You can only delete your own stays");
   }
 
   await Stay.findByIdAndDelete(stayId);
 
   return stay;
-};  
+};
