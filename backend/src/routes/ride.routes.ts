@@ -5,6 +5,9 @@ import {
   acceptRideController,
   updateRideStatusController,
   cancelRideController,
+  getMyRidesController,
+  getDriverRidesController,
+  getRideByIdController,
 } from "../controllers/ride.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { authorize } from "../middleware/role.middleware";
@@ -44,6 +47,27 @@ router.patch(
   authenticate,
   authorize("CUSTOMER", "DRIVER"),
   cancelRideController
+);
+
+router.get(
+  "/my",
+  authenticate,
+  authorize("CUSTOMER"),
+  getMyRidesController
+);
+
+router.get(
+  "/driver",
+  authenticate,
+  authorize("DRIVER"),
+  getDriverRidesController
+);
+
+router.get(
+  "/:id",
+  authenticate,
+  authorize("CUSTOMER", "DRIVER", "ADMIN"),
+  getRideByIdController
 );
 
 export default router;

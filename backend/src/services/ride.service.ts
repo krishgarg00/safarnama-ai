@@ -176,3 +176,63 @@ export const cancelRide = async (
 
   return ride;
 };
+
+export const getMyRides = async (customerId: string) => {
+  if (!mongoose.Types.ObjectId.isValid(customerId)) {
+    throw new Error("Invalid customer ID");
+  }
+
+  const rides = await Ride.find({
+    customer: customerId,
+  })
+    .populate("driver", "name email")
+    .sort({ createdAt: -1 });
+
+  return rides;
+};
+
+export const getDriverRides = async (driverId: string) => {
+  if (!mongoose.Types.ObjectId.isValid(driverId)) {
+    throw new Error("Invalid driver ID");
+  }
+
+  const rides = await Ride.find({
+    driver: driverId,
+  })
+    .populate("customer", "name email")
+    .sort({ createdAt: -1 });
+
+  return rides;
+};
+
+export const getRideById = async (
+  rideId: string,
+  userId: string,
+  userRole: "CUSTOMER" | "DRIVER" | "ADMIN"
+) => {
+  if (!mongoose.Types.ObjectId.isValid(rideId)) {
+    throw new Error("Invalid ride ID");
+  }
+
+  const ride = await Ride.findById(rideId)
+    .populate("customer", "name email")
+    .populate("driver", "name email");
+
+  if (!ride) {
+    throw new Error("Ride not found");
+  }
+
+  if (userRole === "CUSTOMER") {
+    if (ride.customer._id.toString() !== userId) {
+      throw new Error("You can only view your own rides");
+    }
+  }
+
+  if (userRole === "DRIVER") {
+    if (!ride.driver || ride.driver._id.toString() !== userId) {
+      throw new Error("You can only view rides assigned to you");
+    }
+  }
+
+  return ride;
+};

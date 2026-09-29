@@ -5,6 +5,9 @@ import {
   acceptRide,
   updateRideStatus,
   cancelRide,
+  getMyRides,
+  getDriverRides,
+  getRideById,
 } from "../services/ride.service";
 
 export const createRideController = async (
@@ -283,3 +286,135 @@ export const cancelRideController = async (
     });
   }
 };
+
+export const getMyRidesController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+      return;
+    }
+
+    const rides = await getMyRides(req.user.userId);
+
+    res.status(200).json({
+      success: true,
+      rides,
+    });
+  } catch (error) {
+    console.error("Error fetching customer rides:", error);
+
+    if (
+      error instanceof Error &&
+      error.message === "Invalid customer ID"
+    ) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch rides",
+    });
+  }
+};
+
+export const getDriverRidesController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+      return;
+    }
+
+    const rides = await getDriverRides(req.user.userId);
+
+    res.status(200).json({
+      success: true,
+      rides,
+    });
+  } catch (error) {
+    console.error("Error fetching driver rides:", error);
+
+    if (
+      error instanceof Error &&
+      error.message === "Invalid driver ID"
+    ) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch driver rides",
+    });
+  }
+};
+
+export const getRideByIdController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+      return;
+    }
+
+    const { id } = req.params;
+
+    const ride = await getRideById(
+      id,
+      req.user.userId,
+      req.user.role
+    );
+
+    res.status(200).json({
+      success: true,
+      ride,
+    });
+  } catch (error) {
+    console.error("Error fetching ride:", error);
+
+    if (error instanceof Error) {
+      const knownErrors = [
+        "Invalid ride ID",
+        "Ride not found",
+        "You can only view your own rides",
+        "You can only view rides assigned to you",
+      ];
+
+      if (knownErrors.includes(error.message)) {
+        res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+        return;
+      }
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch ride",
+    });
+  }
+};  
