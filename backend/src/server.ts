@@ -5,6 +5,7 @@ import connectDB from "./config/database";
 import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
 import stayRoutes from "./routes/stay.routes";
+import bookingRoutes from "./routes/booking.routes";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/stays", stayRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 const PORT = process.env.PORT || 5000;
 
