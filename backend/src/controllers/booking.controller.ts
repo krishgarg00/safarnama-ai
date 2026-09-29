@@ -5,6 +5,7 @@ import {
   getHostBookings,
   updateBookingStatus,
   cancelBooking,
+  getBookingById,
 } from "../services/booking.service";
 
 export const createBookingController = async (
@@ -241,6 +242,58 @@ export const cancelBookingController = async (
     res.status(500).json({
       success: false,
       message: "Failed to cancel booking",
+    });
+  }
+};
+
+export const getBookingByIdController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+      return;
+    }
+
+    const { id } = req.params;
+
+    const booking = await getBookingById(
+      id,
+      req.user.userId,
+      req.user.role
+    );
+
+    res.status(200).json({
+      success: true,
+      booking,
+    });
+  } catch (error) {
+    console.error("Error fetching booking:", error);
+
+    if (error instanceof Error) {
+      const knownErrors = [
+        "Invalid booking ID",
+        "Booking not found",
+        "You can only view your own bookings",
+        "You can only view bookings for your own stays",
+      ];
+
+      if (knownErrors.includes(error.message)) {
+        res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+        return;
+      }
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch booking",
     });
   }
 };

@@ -209,3 +209,46 @@ export const cancelBooking = async (
 
   return booking;
 };
+
+export const getBookingById = async (
+  bookingId: string,
+  userId: string,
+  userRole: "CUSTOMER" | "HOST" | "ADMIN"
+) => {
+  if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+    throw new Error("Invalid booking ID");
+  }
+
+  const booking = await Booking.findById(bookingId)
+    .populate("customer", "name email")
+    .populate("stay", "title city state pricePerNight host");
+
+  if (!booking) {
+    throw new Error("Booking not found");
+  }
+
+  const stay = booking.stay as unknown as {
+    _id: mongoose.Types.ObjectId;
+    host: mongoose.Types.ObjectId;
+  };
+
+  if (userRole === "CUSTOMER") {
+    const customer = booking.customer as unknown as {
+      _id: mongoose.Types.ObjectId;
+    };
+
+    if (customer._id.toString() !== userId) {
+      throw new Error("You can only view your own bookings");
+    }
+  }
+
+  if (userRole === "HOST") {
+    if (stay.host.toString() !== userId) {
+      throw new Error(
+        "You can only view bookings for your own stays"
+      );
+    }
+  }
+
+  return booking;
+};

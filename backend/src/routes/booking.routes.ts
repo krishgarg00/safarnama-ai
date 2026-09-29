@@ -6,6 +6,7 @@ import {
   getHostBookingsController,
   updateBookingStatusController,
   cancelBookingController,
+  getBookingByIdController,
 } from "../controllers/booking.controller";
 
 import { authenticate } from "../middleware/auth.middleware";
@@ -31,6 +32,13 @@ router.patch(
   authenticate,
   authorize("CUSTOMER", "HOST"),
   cancelBookingController
+);
+
+router.get(
+  "/:id",
+  authenticate,
+  authorize("CUSTOMER", "HOST", "ADMIN"),
+  getBookingByIdController
 );
 
 export default router;
