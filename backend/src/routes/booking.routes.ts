@@ -2,9 +2,10 @@ import { Router } from "express";
 
 import {
   createBookingController,
-  getHostBookingsController,
   getMyBookingsController,
+  getHostBookingsController,
   updateBookingStatusController,
+  cancelBookingController,
 } from "../controllers/booking.controller";
 
 import { authenticate } from "../middleware/auth.middleware";
@@ -23,6 +24,13 @@ router.patch(
   authenticate,
   authorize("HOST"),
   updateBookingStatusController,
+);
+
+router.patch(
+  "/:id/cancel",
+  authenticate,
+  authorize("CUSTOMER", "HOST"),
+  cancelBookingController
 );
 
 export default router;

@@ -152,3 +152,60 @@ export const updateBookingStatus = async (
 
   return booking;
 };
+
+export const cancelBooking = async (
+  bookingId: string,
+  userId: string,
+  userRole: "CUSTOMER" | "HOST"
+) => {
+  if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+    throw new Error("Invalid booking ID");
+  }
+
+  const booking = await Booking.findById(bookingId);
+
+  if (!booking) {
+    throw new Error("Booking not found");
+  }
+
+  // Customer can cancel only their own booking
+  if (
+    userRole === "CUSTOMER" &&
+    booking.customer.toString() !== userId
+  ) {
+    throw new Error(
+      "You can only cancel your own bookings"
+    );
+  }
+
+  // Host can cancel only bookings for their own stays
+  if (userRole === "HOST") {
+    const stay = await Stay.findById(booking.stay);
+
+    if (!stay) {
+      throw new Error("Stay not found");
+    }
+
+    if (stay.host.toString() !== userId) {
+      throw new Error(
+        "You can only cancel bookings for your own stays"
+      );
+    }
+  }
+
+  // Only active bookings can be cancelled
+  if (
+    booking.status !== "PENDING" &&
+    booking.status !== "CONFIRMED"
+  ) {
+    throw new Error(
+      "Only pending or confirmed bookings can be cancelled"
+    );
+  }
+
+  booking.status = "CANCELLED";
+
+  await booking.save();
+
+  return booking;
+};

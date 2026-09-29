@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import {
   createBooking,
-  getHostBookings,
   getMyBookings,
+  getHostBookings,
   updateBookingStatus,
+  cancelBooking,
 } from "../services/booking.service";
 
 export const createBookingController = async (
@@ -185,6 +186,61 @@ export const updateBookingStatusController = async (
     res.status(500).json({
       success: false,
       message: "Failed to update booking status",
+    });
+  }
+};
+
+export const cancelBookingController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+      return;
+    }
+
+    const { id } = req.params;
+
+    const booking = await cancelBooking(
+      id,
+      req.user.userId,
+      req.user.role as "CUSTOMER" | "HOST"
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Booking cancelled successfully",
+      booking,
+    });
+  } catch (error) {
+    console.error("Error cancelling booking:", error);
+
+    if (error instanceof Error) {
+      const knownErrors = [
+        "Invalid booking ID",
+        "Booking not found",
+        "You can only cancel your own bookings",
+        "Stay not found",
+        "You can only cancel bookings for your own stays",
+        "Only pending or confirmed bookings can be cancelled",
+      ];
+
+      if (knownErrors.includes(error.message)) {
+        res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+        return;
+      }
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to cancel booking",
     });
   }
 };
