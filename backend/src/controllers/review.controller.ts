@@ -94,7 +94,7 @@ export const getReviewsForStayController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { stayId } = req.params;
+    const stayId = String(req.params.stayId);
 
     const reviews = await getReviewsForStay(stayId);
 
@@ -128,7 +128,7 @@ export const getReviewStatsForStayController = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { stayId } = req.params;
+    const stayId = String(req.params.stayId);
 
     const stats = await getReviewStatsForStay(stayId);
 

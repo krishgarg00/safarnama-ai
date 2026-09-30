@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import {
-  createBooking,
-  getMyBookings,
-  getHostBookings,
-  updateBookingStatus,
   cancelBooking,
+  createBooking,
   getBookingById,
+  getHostBookings,
+  getMyBookings,
+  updateBookingStatus,
 } from "../services/booking.service";
 
 export const createBookingController = async (
@@ -146,7 +146,7 @@ export const updateBookingStatusController = async (
       return;
     }
 
-    const { id } = req.params;
+    const id = String(req.params.id);
     const { status } = req.body;
 
     if (status !== "CONFIRMED" && status !== "REJECTED") {
@@ -193,7 +193,7 @@ export const updateBookingStatusController = async (
 
 export const cancelBookingController = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -204,12 +204,12 @@ export const cancelBookingController = async (
       return;
     }
 
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const booking = await cancelBooking(
       id,
       req.user.userId,
-      req.user.role as "CUSTOMER" | "HOST"
+      req.user.role as "CUSTOMER" | "HOST",
     );
 
     res.status(200).json({
@@ -248,7 +248,7 @@ export const cancelBookingController = async (
 
 export const getBookingByIdController = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -259,12 +259,12 @@ export const getBookingByIdController = async (
       return;
     }
 
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const booking = await getBookingById(
       id,
       req.user.userId,
-      req.user.role
+      req.user.role as "CUSTOMER" | "HOST" | "ADMIN",
     );
 
     res.status(200).json({

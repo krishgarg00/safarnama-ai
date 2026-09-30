@@ -114,7 +114,7 @@ export const acceptRideController = async (
       return;
     }
 
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const ride = await acceptRide(
       id,
@@ -167,7 +167,7 @@ export const updateRideStatusController = async (
       return;
     }
 
-    const { id } = req.params;
+    const id = String(req.params.id);
     const { status } = req.body || {};
 
     const allowedStatuses = [
@@ -246,7 +246,7 @@ export const cancelRideController = async (
       return;
     }
 
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const ride = await cancelRide(
       id,
@@ -380,12 +380,12 @@ export const getRideByIdController = async (
       return;
     }
 
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const ride = await getRideById(
       id,
       req.user.userId,
-      req.user.role
+      req.user.role as "CUSTOMER" | "DRIVER" | "ADMIN"
     );
 
     res.status(200).json({

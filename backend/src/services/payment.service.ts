@@ -102,3 +102,71 @@ export const createPayment = async (
 
   return payment;
 };
+
+export const updatePaymentStatus = async (
+  paymentId: string,
+  userId: string,
+  status: "SUCCESS" | "FAILED" | "REFUNDED"
+) => {
+  if (!mongoose.Types.ObjectId.isValid(paymentId)) {
+    throw new Error("Invalid payment ID");
+  }
+
+  const payment = await Payment.findById(paymentId);
+
+  if (!payment) {
+    throw new Error("Payment not found");
+  }
+
+  if (payment.user.toString() !== userId) {
+    throw new Error("You can only update your own payments");
+  }
+
+  if (payment.status === "REFUNDED") {
+    throw new Error("Refunded payments cannot be updated");
+  }
+
+  if (payment.status === "SUCCESS" && status === "SUCCESS") {
+    throw new Error("Payment is already successful");
+  }
+
+  payment.status = status;
+
+  await payment.save();
+
+  return payment;
+};
+
+export const getPaymentById = async (
+  paymentId: string,
+  userId: string
+) => {
+  if (!mongoose.Types.ObjectId.isValid(paymentId)) {
+    throw new Error("Invalid payment ID");
+  }
+
+  const payment = await Payment.findById(paymentId)
+    .populate("booking")
+    .populate("ride");
+
+  if (!payment) {
+    throw new Error("Payment not found");
+  }
+
+  if (payment.user.toString() !== userId) {
+    throw new Error("You can only view your own payments");
+  }
+
+  return payment;
+};
+
+export const getMyPayments = async (userId: string) => {
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new Error("Invalid user ID");
+  }
+
+  return Payment.find({ user: userId })
+    .populate("booking")
+    .populate("ride")
+    .sort({ createdAt: -1 });
+};
