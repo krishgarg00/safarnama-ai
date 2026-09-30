@@ -1,19 +1,41 @@
-import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import express from "express";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import connectDB from "./config/database";
-import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
-import stayRoutes from "./routes/stay.routes";
 import bookingRoutes from "./routes/booking.routes";
+import notificationRoutes from "./routes/notification.routes";
+import paymentRoutes from "./routes/payment.routes";
 import reviewRoutes from "./routes/review.routes";
 import rideRoutes from "./routes/ride.routes";
-import paymentRoutes from "./routes/payment.routes";
-import notificationRoutes from "./routes/notification.routes";
+import stayRoutes from "./routes/stay.routes";
+import userRoutes from "./routes/user.routes";
 
 dotenv.config();
 
 const app = express();
+
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:5173",
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log(`Socket connected: ${socket.id}`);
+
+  socket.emit("welcome", {
+    message: "Welcome to Safarnama AI real-time server 🚀",
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`Socket disconnected: ${socket.id}`);
+  });
+});
 
 app.use(cors());
 app.use(express.json());
@@ -39,7 +61,7 @@ const startServer = async (): Promise<void> => {
   try {
     await connectDB();
 
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`Safarnama AI backend running on http://localhost:${PORT}`);
     });
   } catch (error) {
