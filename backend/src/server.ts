@@ -8,6 +8,7 @@ import stayRoutes from "./routes/stay.routes";
 import bookingRoutes from "./routes/booking.routes";
 import reviewRoutes from "./routes/review.routes";
 import rideRoutes from "./routes/ride.routes";
+import paymentRoutes from "./routes/payment.routes";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use("/api/stays", stayRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/rides", rideRoutes);
+app.use("/api/payments", paymentRoutes);
 
 const PORT = process.env.PORT || 5000;
 
