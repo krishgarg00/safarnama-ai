@@ -1,72 +1,66 @@
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
-
-const socket = io("http://localhost:5000");
-
-interface RideUpdate {
-  rideId: string;
-  status: string;
-  message: string;
-}
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import { getMyRides } from "./api/rides";
 
 function App() {
-  const [rideUpdate, setRideUpdate] = useState<RideUpdate | null>(null);
-  const [connected, setConnected] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
+  const [rides, setRides] = useState<unknown[]>([]);
+  const [rideError, setRideError] = useState("");
 
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
+    const token = localStorage.getItem("token");
 
-      setConnected(true);
+    if (!token) {
+      return;
+    }
 
-      socket.emit("join-user-room", "6abb78bdcf61e6340dcb52c8");
-    });
+    const loadRides = async () => {
+      try {
+        const result = await getMyRides();
 
-    socket.on("welcome", (data) => {
-      console.log("Real-time message:", data.message);
-    });
+        console.log("My rides:", result);
 
-    socket.on("ride-update", (data: RideUpdate) => {
-      console.log("🚗 Ride update:", data);
+        setRides(result.rides || result.data || []);
+      } catch (error) {
+        console.error("Failed to load rides:", error);
 
-      setRideUpdate(data);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-
-      setConnected(false);
-    });
-
-    return () => {
-      socket.off("connect");
-      socket.off("welcome");
-      socket.off("ride-update");
-      socket.off("disconnect");
+        setRideError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load rides"
+        );
+      }
     };
+
+    loadRides();
   }, []);
 
   return (
     <div>
-      <h1>Safarnama AI</h1>
+      {showLogin ? <Login /> : <Register />}
 
-      <p>
-        Socket.IO: {connected ? "Connected 🟢" : "Disconnected 🔴"}
-      </p>
+      <button onClick={() => setShowLogin(!showLogin)}>
+        {showLogin
+          ? "Create a new account"
+          : "Already have an account? Login"}
+      </button>
 
-      {rideUpdate && (
+      {localStorage.getItem("token") && (
         <div>
-          <h2>🚗 Ride Update</h2>
+          <h2>My Rides</h2>
 
-          <p>
-            <strong>Status:</strong> {rideUpdate.status}
-          </p>
+          {rideError && <p>{rideError}</p>}
 
-          <p>{rideUpdate.message}</p>
+          {!rideError && rides.length === 0 && (
+            <p>No rides found.</p>
+          )}
 
-          <p>
-            <strong>Ride ID:</strong> {rideUpdate.rideId}
-          </p>
+          {rides.map((ride, index) => (
+            <pre key={index}>
+              {JSON.stringify(ride, null, 2)}
+            </pre>
+          ))}
         </div>
       )}
     </div>
