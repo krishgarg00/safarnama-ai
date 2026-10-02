@@ -3,7 +3,9 @@ import dotenv from "dotenv";
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
+
 import connectDB from "./config/database";
+
 import authRoutes from "./routes/auth.routes";
 import bookingRoutes from "./routes/booking.routes";
 import notificationRoutes from "./routes/notification.routes";
@@ -12,6 +14,8 @@ import reviewRoutes from "./routes/review.routes";
 import rideRoutes from "./routes/ride.routes";
 import stayRoutes from "./routes/stay.routes";
 import userRoutes from "./routes/user.routes";
+
+import { initializeSocket } from "./socket";
 
 dotenv.config();
 
@@ -25,11 +29,19 @@ const io = new Server(httpServer, {
   },
 });
 
+initializeSocket(io);
+
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
   socket.emit("welcome", {
     message: "Welcome to Safarnama AI real-time server 🚀",
+  });
+
+  socket.on("join-user-room", (userId: string) => {
+    socket.join(`user:${userId}`);
+
+    console.log(`Socket ${socket.id} joined user:${userId}`);
   });
 
   socket.on("disconnect", () => {
@@ -39,14 +51,6 @@ io.on("connection", (socket) => {
 
 app.use(cors());
 app.use(express.json());
-app.use("/api/users", userRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/stays", stayRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/reviews", reviewRoutes);
-app.use("/api/rides", rideRoutes);
-app.use("/api/payments", paymentRoutes);
-app.use("/api/notifications", notificationRoutes);
 
 const PORT = process.env.PORT || 5000;
 
@@ -57,12 +61,23 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/stays", stayRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/rides", rideRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/notifications", notificationRoutes);
+
 const startServer = async (): Promise<void> => {
   try {
     await connectDB();
 
     httpServer.listen(PORT, () => {
-      console.log(`Safarnama AI backend running on http://localhost:${PORT}`);
+      console.log(
+        `Safarnama AI backend running on http://localhost:${PORT}`
+      );
     });
   } catch (error) {
     console.error("Failed to start server:", error);

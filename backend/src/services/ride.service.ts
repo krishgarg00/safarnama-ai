@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Ride from "../models/Ride";
+import { getIO } from "../socket";
 
 interface CreateRideData {
   customer: string;
@@ -8,24 +9,15 @@ interface CreateRideData {
   fare: number;
 }
 
-export const createRide = async (
-  rideData: CreateRideData
-) => {
-  const {
-    customer,
-    pickupLocation,
-    dropoffLocation,
-    fare,
-  } = rideData;
+export const createRide = async (rideData: CreateRideData) => {
+  const { customer, pickupLocation, dropoffLocation, fare } = rideData;
 
   if (!mongoose.Types.ObjectId.isValid(customer)) {
     throw new Error("Invalid customer ID");
   }
 
   if (!pickupLocation || !dropoffLocation) {
-    throw new Error(
-      "Pickup and drop-off locations are required"
-    );
+    throw new Error("Pickup and drop-off locations are required");
   }
 
   if (fare < 0) {
@@ -41,8 +33,7 @@ export const createRide = async (
   });
 
   return ride;
-};  
-
+};
 
 export const getAvailableRides = async () => {
   const rides = await Ride.find({
@@ -55,10 +46,7 @@ export const getAvailableRides = async () => {
   return rides;
 };
 
-export const acceptRide = async (
-  rideId: string,
-  driverId: string
-) => {
+export const acceptRide = async (rideId: string, driverId: string) => {
   if (!mongoose.Types.ObjectId.isValid(rideId)) {
     throw new Error("Invalid ride ID");
   }
@@ -86,13 +74,20 @@ export const acceptRide = async (
 
   await ride.save();
 
+  // Send real-time update to the customer
+  getIO().to(`user:${ride.customer.toString()}`).emit("ride-update", {
+    rideId: ride._id.toString(),
+    status: "ACCEPTED",
+    message: "Your ride has been accepted 🚗",
+  });
+
   return ride;
 };
 
 export const updateRideStatus = async (
   rideId: string,
   driverId: string,
-  status: "DRIVER_ARRIVING" | "IN_PROGRESS" | "COMPLETED"
+  status: "DRIVER_ARRIVING" | "IN_PROGRESS" | "COMPLETED",
 ) => {
   if (!mongoose.Types.ObjectId.isValid(rideId)) {
     throw new Error("Invalid ride ID");
@@ -118,12 +113,11 @@ export const updateRideStatus = async (
     IN_PROGRESS: ["COMPLETED"],
   };
 
-  const allowedNextStatuses =
-    allowedTransitions[ride.status] || [];
+  const allowedNextStatuses = allowedTransitions[ride.status] || [];
 
   if (!allowedNextStatuses.includes(status)) {
     throw new Error(
-      `Invalid ride status transition from ${ride.status} to ${status}`
+      `Invalid ride status transition from ${ride.status} to ${status}`,
     );
   }
 
@@ -131,13 +125,22 @@ export const updateRideStatus = async (
 
   await ride.save();
 
+  // Send real-time update to the customer
+  getIO()
+    .to(`user:${ride.customer.toString()}`)
+    .emit("ride-update", {
+      rideId: ride._id.toString(),
+      status: ride.status,
+      message: `Your ride status is now ${ride.status}`,
+    });
+
   return ride;
-};  
+};
 
 export const cancelRide = async (
   rideId: string,
   userId: string,
-  userRole: "CUSTOMER" | "DRIVER"
+  userRole: "CUSTOMER" | "DRIVER",
 ) => {
   if (!mongoose.Types.ObjectId.isValid(rideId)) {
     throw new Error("Invalid ride ID");
@@ -161,18 +164,20 @@ export const cancelRide = async (
     }
   }
 
-  if (
-    ride.status === "COMPLETED" ||
-    ride.status === "CANCELLED"
-  ) {
-    throw new Error(
-      "Completed or already cancelled rides cannot be cancelled"
-    );
+  if (ride.status === "COMPLETED" || ride.status === "CANCELLED") {
+    throw new Error("Completed or already cancelled rides cannot be cancelled");
   }
 
   ride.status = "CANCELLED";
 
   await ride.save();
+
+  // Send real-time update to the customer
+  getIO().to(`user:${ride.customer.toString()}`).emit("ride-update", {
+    rideId: ride._id.toString(),
+    status: "CANCELLED",
+    message: "Your ride has been cancelled 🚫",
+  });
 
   return ride;
 };
@@ -208,7 +213,7 @@ export const getDriverRides = async (driverId: string) => {
 export const getRideById = async (
   rideId: string,
   userId: string,
-  userRole: "CUSTOMER" | "DRIVER" | "ADMIN"
+  userRole: "CUSTOMER" | "DRIVER" | "ADMIN",
 ) => {
   if (!mongoose.Types.ObjectId.isValid(rideId)) {
     throw new Error("Invalid ride ID");
