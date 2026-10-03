@@ -1,0 +1,121 @@
+import React from "react";
+import type { LoggedInUser } from "./Login";
+import { loginUser } from "../api/auth";
+
+interface ProfileProps {
+  currentUser: LoggedInUser | null;
+  onLogout: () => void;
+  onOpenAuth: () => void;
+  onLoginSuccess: (user: LoggedInUser, token: string) => void;
+  socketConnected: boolean;
+}
+
+export const Profile: React.FC<ProfileProps> = ({
+  currentUser,
+  onLogout,
+  onOpenAuth,
+  onLoginSuccess,
+  socketConnected,
+}) => {
+  const switchAccount = async (email: string) => {
+    try {
+      const res = await loginUser({ email, password: "password123" });
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("user", JSON.stringify(res.user));
+      onLoginSuccess(res.user, res.token);
+    } catch (err) {
+      alert("Account switch failed: " + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
+  return (
+    <div className="container" style={{ padding: "40px 20px", maxWidth: "700px" }}>
+      <div className="section-header">
+        <div>
+          <h1 className="section-title">User Account &amp; Settings</h1>
+          <p className="section-subtitle">Manage your profile, platform role, and real-time settings.</p>
+        </div>
+      </div>
+
+      {currentUser ? (
+        <div style={{ background: "white", padding: "32px", borderRadius: "12px", border: "1px solid var(--border)", boxShadow: "var(--shadow-sm)", marginBottom: "32px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "24px" }}>
+            <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "var(--primary-light)", border: "2px solid var(--primary-border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px" }}>
+              {currentUser.role === "DRIVER" ? "🚗" : currentUser.role === "HOST" ? "🏠" : "👤"}
+            </div>
+            <div>
+              <h2 style={{ fontSize: "22px", fontWeight: 800 }}>{currentUser.name}</h2>
+              <p style={{ color: "var(--muted)", fontSize: "14px" }}>{currentUser.email}</p>
+            </div>
+            <div style={{ marginLeft: "auto" }}>
+              <span className={`user-role-badge role-${currentUser.role}`} style={{ fontSize: "12px", padding: "4px 10px" }}>
+                {currentUser.role}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "20px", display: "flex", flexDirection: "column", gap: "12px", fontSize: "14px" }}>
+            <div>
+              <strong>User ID:</strong> <code style={{ marginLeft: "8px" }}>{currentUser._id}</code>
+            </div>
+            <div>
+              <strong>Socket Status:</strong>{" "}
+              <span style={{ marginLeft: "8px", color: socketConnected ? "#059669" : "#dc2626", fontWeight: 700 }}>
+                {socketConnected ? "🟢 Connected to user room" : "🔴 Disconnected"}
+              </span>
+            </div>
+            <div>
+              <strong>Dynamic Room:</strong> <code style={{ marginLeft: "8px" }}>user:{currentUser._id}</code>
+            </div>
+          </div>
+
+          <div style={{ marginTop: "28px", borderTop: "1px solid var(--border)", paddingTop: "20px", display: "flex", justifyContent: "flex-end" }}>
+            <button className="btn-secondary" style={{ color: "#dc2626", borderColor: "#fecaca" }} onClick={onLogout}>
+              Log Out of Safarnama
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ background: "white", padding: "32px", borderRadius: "12px", border: "1px solid var(--border)", textAlign: "center", marginBottom: "32px" }}>
+          <div style={{ fontSize: "40px", marginBottom: "12px" }}>🔐</div>
+          <h3 style={{ fontSize: "20px", marginBottom: "8px" }}>You are not signed in</h3>
+          <p style={{ color: "var(--muted)", marginBottom: "20px" }}>
+            Sign in to book stays, create rides, and access your profile.
+          </p>
+          <button className="btn-primary" onClick={onOpenAuth}>
+            Sign In or Register
+          </button>
+        </div>
+      )}
+
+      {/* Quick Demo Role Switcher */}
+      <div style={{ background: "white", padding: "24px", borderRadius: "12px", border: "1px solid var(--border)" }}>
+        <h3 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "8px" }}>
+          ⚡ Fast Switch Demo Accounts (Development Helper)
+        </h3>
+        <p style={{ fontSize: "13px", color: "var(--muted)", marginBottom: "16px" }}>
+          Quickly switch roles to test Customer ride booking, Driver accepting/updating, and Host property ownership.
+        </p>
+
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <button
+            className="btn-secondary"
+            style={{ fontSize: "13px" }}
+            onClick={() => switchAccount("customer@example.com")}
+          >
+            👤 Customer (customer@example.com)
+          </button>
+          <button
+            className="btn-secondary"
+            style={{ fontSize: "13px" }}
+            onClick={() => switchAccount("driver@example.com")}
+          >
+            🚗 Driver (driver@example.com)
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Profile;

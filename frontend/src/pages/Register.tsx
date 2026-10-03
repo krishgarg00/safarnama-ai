@@ -2,19 +2,26 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { registerUser } from "../api/auth";
 
-function Register() {
+interface RegisterProps {
+  onSwitchToLogin?: () => void;
+  onRegisteredSuccess?: () => void;
+}
+
+function Register({ onSwitchToLogin, onRegisteredSuccess }: RegisterProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     setMessage("");
     setError("");
+    setLoading(true);
 
     try {
       const result = await registerUser({
@@ -23,64 +30,104 @@ function Register() {
         password,
       });
 
-      setMessage(result.message);
+      setMessage(result.message || "Registration successful! You can now log in.");
 
       setName("");
       setEmail("");
       setPassword("");
-    } catch (error) {
+
+      if (onRegisteredSuccess) {
+        setTimeout(onRegisteredSuccess, 1500);
+      }
+    } catch (err) {
       setError(
-        error instanceof Error
-          ? error.message
-          : "Registration failed"
+        err instanceof Error ? err.message : "Registration failed"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h1>Create your Safarnama AI account</h1>
+    <div className="auth-container">
+      <div className="auth-header">
+        <div style={{ fontSize: "36px", marginBottom: "8px" }}>🚀</div>
+        <h2>Create Your Account</h2>
+        <p>Join Safarnama AI to experience seamless stays and rides</p>
+      </div>
 
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name</label>
+        <div className="form-group">
+          <label className="form-label">Full Name</label>
           <input
             type="text"
+            className="form-input"
+            placeholder="Krish Garg"
             value={name}
             onChange={(event) => setName(event.target.value)}
             required
           />
         </div>
 
-        <div>
-          <label>Email</label>
+        <div className="form-group">
+          <label className="form-label">Email Address</label>
           <input
             type="email"
+            className="form-input"
+            placeholder="krish@example.com"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
           />
         </div>
 
-        <div>
-          <label>Password</label>
+        <div className="form-group">
+          <label className="form-label">Password</label>
           <input
             type="password"
+            className="form-input"
+            placeholder="At least 6 characters"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
           />
         </div>
 
-        <button type="submit">
-          Register
+        <button
+          type="submit"
+          className="btn-primary"
+          style={{ width: "100%", padding: "12px", marginTop: "10px" }}
+          disabled={loading}
+        >
+          {loading ? "Creating Account..." : "Create Account"}
         </button>
       </form>
 
-      {message && <p>{message}</p>}
+      {message && (
+        <div style={{ marginTop: "14px", padding: "10px", background: "#ecfdf5", color: "#059669", borderRadius: "8px", fontSize: "14px", textAlign: "center" }}>
+          {message}
+        </div>
+      )}
 
-      {error && <p>{error}</p>}
-    </div>  
+      {error && (
+        <div style={{ marginTop: "14px", padding: "10px", background: "#fef2f2", color: "#dc2626", borderRadius: "8px", fontSize: "14px", textAlign: "center" }}>
+          {error}
+        </div>
+      )}
+
+      {onSwitchToLogin && (
+        <div style={{ marginTop: "24px", textAlign: "center", fontSize: "14px", color: "var(--muted)" }}>
+          Already have an account?{" "}
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            style={{ background: "none", color: "var(--primary)", fontWeight: 700, textDecoration: "underline" }}
+          >
+            Sign In Instead
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 

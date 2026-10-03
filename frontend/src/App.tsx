@@ -9,10 +9,18 @@ import {
   cancelRide,
   type RideItem,
 } from "./api/rides";
-import type { LoggedInUser } from "./pages/Login";
-import CreateRide from "./pages/CreateRide";
-import Login from "./pages/Login";
+import type { StayItem } from "./api/stays";
+import Navbar, { type NavTab } from "./components/Navbar";
+import Footer from "./components/Footer";
+import Home from "./pages/Home";
+import Explore from "./pages/Explore";
+import Stays from "./pages/Stays";
+import Rides from "./pages/Rides";
+import Trips from "./pages/Trips";
+import Profile from "./pages/Profile";
+import Login, { type LoggedInUser } from "./pages/Login";
 import Register from "./pages/Register";
+import "./App.css";
 
 const socket = io("http://localhost:5000", {
   autoConnect: true,
@@ -24,7 +32,12 @@ interface RideUpdatePayload {
   message: string;
 }
 
-function App() {
+export function App() {
+  const [activeTab, setActiveTab] = useState<NavTab>("Home");
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [prefillRideDestination, setPrefillRideDestination] = useState<string>("");
+
   const [currentUser, setCurrentUser] = useState<LoggedInUser | null>(() => {
     const stored = localStorage.getItem("user");
     try {
@@ -34,17 +47,14 @@ function App() {
     }
   });
 
-  const [showLogin, setShowLogin] = useState(true);
-  const [showRidePage, setShowRidePage] = useState(false);
   const [rides, setRides] = useState<RideItem[]>([]);
   const [availableRides, setAvailableRides] = useState<RideItem[]>([]);
   const [driverRides, setDriverRides] = useState<RideItem[]>([]);
   const [rideError, setRideError] = useState("");
   const [socketConnected, setSocketConnected] = useState(socket.connected);
-
   const [rideUpdate, setRideUpdate] = useState<RideUpdatePayload | null>(null);
 
-  const loadData = useCallback(async () => {
+  const loadRidesData = useCallback(async () => {
     if (!currentUser) return;
 
     try {
@@ -68,6 +78,7 @@ function App() {
     }
   }, [currentUser]);
 
+  // Real-time socket room management
   useEffect(() => {
     if (!currentUser?._id) {
       return;
@@ -112,7 +123,7 @@ function App() {
       );
 
       // Reload full ride details from backend
-      loadData();
+      loadRidesData();
     };
 
     socket.on("connect", handleConnect);
@@ -120,7 +131,7 @@ function App() {
     socket.on("welcome", handleWelcome);
     socket.on("ride-update", handleRideUpdate);
 
-    loadData();
+    loadRidesData();
 
     return () => {
       socket.off("connect", handleConnect);
@@ -128,7 +139,7 @@ function App() {
       socket.off("welcome", handleWelcome);
       socket.off("ride-update", handleRideUpdate);
     };
-  }, [currentUser, loadData]);
+  }, [currentUser, loadRidesData]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -138,12 +149,13 @@ function App() {
     setAvailableRides([]);
     setDriverRides([]);
     setRideUpdate(null);
+    setActiveTab("Home");
   };
 
   const handleAcceptRide = async (rideId: string) => {
     try {
       await acceptRide(rideId);
-      await loadData();
+      await loadRidesData();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to accept ride");
     }
@@ -155,7 +167,7 @@ function App() {
   ) => {
     try {
       await updateRideStatus(rideId, status);
-      await loadData();
+      await loadRidesData();
     } catch (error) {
       alert(
         error instanceof Error ? error.message : "Failed to update ride status",
@@ -167,374 +179,172 @@ function App() {
     if (!window.confirm("Are you sure you want to cancel this ride?")) return;
     try {
       await cancelRide(rideId);
-      await loadData();
+      await loadRidesData();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to cancel ride");
     }
   };
 
-  // Not logged in view
-  if (!currentUser) {
-    return (
-      <div style={{ padding: "20px", fontFamily: "sans-serif", maxWidth: "600px", margin: "0 auto" }}>
-        {showLogin ? (
-          <Login
+  // Stay + Ride connection trigger
+  const handleRideToStay = (stay: StayItem) => {
+    setPrefillRideDestination(`${stay.title}, ${stay.city}`);
+    setActiveTab("Rides");
+  };
+
+  // Preview booking trigger
+  const handleBookStay = (stay: StayItem) => {
+    alert(
+      `🎉 You selected "${stay.title}" (₹${stay.pricePerNight}/night) in ${stay.city}!\n\nFull Booking & Payment workflow will be integrated in Phase 3. You can also coordinate a ride directly to this stay!`
+    );
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      {/* Top Navigation */}
+      <Navbar
+        activeTab={activeTab}
+        onTabChange={(tab) => setActiveTab(tab)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onOpenAuth={() => {
+          setAuthMode("login");
+          setShowAuthModal(true);
+        }}
+        socketConnected={socketConnected}
+      />
+
+      {/* Main Content Pages */}
+      <main style={{ flex: 1 }}>
+        {activeTab === "Home" && (
+          <Home
+            onNavigate={(tab) => setActiveTab(tab)}
+            onRideToStay={handleRideToStay}
+            onBookStay={handleBookStay}
+          />
+        )}
+
+        {activeTab === "Explore" && (
+          <Explore
+            onSelectDestination={() => {
+              setActiveTab("Home");
+            }}
+            onNavigate={(tab) => setActiveTab(tab)}
+          />
+        )}
+
+        {activeTab === "Stays" && (
+          <Stays
+            onRideToStay={handleRideToStay}
+            onBookStay={handleBookStay}
+          />
+        )}
+
+        {activeTab === "Rides" && (
+          <Rides
+            currentUser={currentUser}
+            rides={rides}
+            availableRides={availableRides}
+            driverRides={driverRides}
+            rideError={rideError}
+            rideUpdate={rideUpdate}
+            onAcceptRide={handleAcceptRide}
+            onUpdateStatus={handleUpdateStatus}
+            onCancelRide={handleCancelRide}
+            onRideCreated={loadRidesData}
+            onOpenAuth={() => {
+              setAuthMode("login");
+              setShowAuthModal(true);
+            }}
+            prefillDestination={prefillRideDestination}
+            onClearPrefill={() => setPrefillRideDestination("")}
+          />
+        )}
+
+        {activeTab === "Trips" && (
+          <Trips
+            onNavigate={(tab) => setActiveTab(tab)}
+            onSearchStayInDestination={() => {
+              setActiveTab("Home");
+            }}
+          />
+        )}
+
+        {activeTab === "Profile" && (
+          <Profile
+            currentUser={currentUser}
+            onLogout={handleLogout}
+            onOpenAuth={() => {
+              setAuthMode("login");
+              setShowAuthModal(true);
+            }}
             onLoginSuccess={(user) => {
               setCurrentUser(user);
             }}
+            socketConnected={socketConnected}
           />
-        ) : (
-          <Register />
         )}
+      </main>
 
-        <div style={{ marginTop: "15px" }}>
-          <button onClick={() => setShowLogin(!showLogin)}>
-            {showLogin ? "Create a new account" : "Already have an account? Login"}
-          </button>
-        </div>
+      {/* Footer */}
+      <Footer onNavClick={(tab) => setActiveTab(tab)} />
 
-        <div style={{ marginTop: "25px", padding: "12px", border: "1px dashed #aaa", borderRadius: "6px" }}>
-          <small>
-            <strong>Quick Demo Credentials:</strong><br />
-            👤 Customer: <code>customer@example.com</code> / <code>password123</code><br />
-            🚗 Driver: <code>driver@example.com</code> / <code>password123</code>
-          </small>
-        </div>
-      </div>
-    );
-  }
-
-  // Create Ride View
-  if (showRidePage && currentUser.role === "CUSTOMER") {
-    return (
-      <div style={{ padding: "20px", fontFamily: "sans-serif", maxWidth: "600px", margin: "0 auto" }}>
-        <button onClick={() => setShowRidePage(false)}>← Back to Dashboard</button>
-        <CreateRide
-          onRideCreated={async () => {
-            await loadData();
-            setShowRidePage(false);
+      {/* Auth Modal Backdrop */}
+      {showAuthModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(15, 23, 42, 0.6)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "20px",
           }}
-        />
-      </div>
-    );
-  }
-
-  // Logged-in View
-  return (
-    <div style={{ padding: "20px", fontFamily: "sans-serif", maxWidth: "800px", margin: "0 auto" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #ddd", paddingBottom: "15px", marginBottom: "20px" }}>
-        <div>
-          <h1 style={{ margin: "0 0 5px 0" }}>Safarnama AI 🚀</h1>
-          <p style={{ margin: 0, color: "#666" }}>
-            Logged in as: <strong>{currentUser.name}</strong> ({currentUser.email}) &bull; Role: <strong>{currentUser.role}</strong>
-          </p>
-          <small>
-            Real-Time Socket: {socketConnected ? "🟢 Connected" : "🔴 Disconnected"} (Room: <code>user:{currentUser._id}</code>)
-          </small>
-        </div>
-        <div>
-          <button onClick={handleLogout} style={{ padding: "8px 16px", cursor: "pointer" }}>
-            Logout
-          </button>
-        </div>
-      </header>
-
-      {/* Real-time alert notification banner */}
-      {rideUpdate && (
-        <div style={{
-          backgroundColor: "#e6f4ea",
-          border: "2px solid #34a853",
-          borderRadius: "8px",
-          padding: "15px",
-          marginBottom: "20px",
-          animation: "fadeIn 0.3s ease-in-out"
-        }}>
-          <h3 style={{ margin: "0 0 8px 0", color: "#137333" }}>
-            🚗 Live Ride Update
-          </h3>
-          <p style={{ margin: "0 0 5px 0", fontSize: "16px" }}>
-            <strong>Status:</strong>{" "}
-            <span style={{
-              backgroundColor: "#137333",
-              color: "#fff",
-              padding: "2px 8px",
-              borderRadius: "4px",
-              fontSize: "13px"
-            }}>
-              {rideUpdate.status}
-            </span>
-          </p>
-          <p style={{ margin: "0 0 5px 0" }}>{rideUpdate.message}</p>
-          <small style={{ color: "#555" }}>Ride ID: {rideUpdate.rideId}</small>
-        </div>
-      )}
-
-      {/* Customer Interface */}
-      {currentUser.role === "CUSTOMER" && (
-        <section>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-            <h2 style={{ margin: 0 }}>My Rides</h2>
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowAuthModal(false);
+          }}
+        >
+          <div style={{ position: "relative", width: "100%", maxWidth: "460px" }}>
             <button
-              onClick={() => setShowRidePage(true)}
+              onClick={() => setShowAuthModal(false)}
               style={{
-                backgroundColor: "#1a73e8",
-                color: "#fff",
+                position: "absolute",
+                top: "14px",
+                right: "14px",
+                background: "rgba(0, 0, 0, 0.05)",
                 border: "none",
-                padding: "10px 18px",
-                borderRadius: "5px",
-                cursor: "pointer",
+                borderRadius: "50%",
+                width: "32px",
+                height: "32px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontWeight: "bold",
+                cursor: "pointer",
+                zIndex: 10,
               }}
             >
-              Book a Ride 🚗
+              ✕
             </button>
-          </div>
 
-          {rideError && <p style={{ color: "red" }}>{rideError}</p>}
-
-          {!rideError && rides.length === 0 && (
-            <p style={{ color: "#666" }}>You have not requested any rides yet. Click &quot;Book a Ride&quot; above!</p>
-          )}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {rides.map((ride) => (
-              <div
-                key={ride._id}
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  padding: "15px",
-                  backgroundColor: "#fafafa",
+            {authMode === "login" ? (
+              <Login
+                onLoginSuccess={(user) => {
+                  setCurrentUser(user);
+                  setShowAuthModal(false);
                 }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                  <strong>
-                    {ride.pickupLocation} &rarr; {ride.dropoffLocation}
-                  </strong>
-                  <span
-                    style={{
-                      backgroundColor:
-                        ride.status === "COMPLETED"
-                          ? "#34a853"
-                          : ride.status === "CANCELLED"
-                          ? "#ea4335"
-                          : ride.status === "REQUESTED"
-                          ? "#fbbc04"
-                          : "#1a73e8",
-                      color: ride.status === "REQUESTED" ? "#000" : "#fff",
-                      padding: "3px 8px",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {ride.status}
-                  </span>
-                </div>
-
-                <div style={{ fontSize: "14px", color: "#444", marginBottom: "8px" }}>
-                  Fare: <strong>₹{ride.fare}</strong>
-                  {ride.driver && (
-                    <span style={{ marginLeft: "15px" }}>
-                      Driver: <strong>{ride.driver.name}</strong> ({ride.driver.email})
-                    </span>
-                  )}
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <small style={{ color: "#777" }}>ID: {ride._id}</small>
-
-                  {["REQUESTED", "ACCEPTED", "DRIVER_ARRIVING"].includes(ride.status) && (
-                    <button
-                      onClick={() => handleCancelRide(ride._id)}
-                      style={{
-                        backgroundColor: "#ea4335",
-                        color: "#fff",
-                        border: "none",
-                        padding: "5px 12px",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Cancel Ride
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Driver Interface */}
-      {currentUser.role === "DRIVER" && (
-        <section>
-          <h2>Driver Console 🚗</h2>
-
-          {rideError && <p style={{ color: "red" }}>{rideError}</p>}
-
-          <div style={{ marginBottom: "30px" }}>
-            <h3>Available Rides to Accept</h3>
-            {availableRides.length === 0 ? (
-              <p style={{ color: "#666" }}>No requested rides available at the moment.</p>
+                onSwitchToRegister={() => setAuthMode("register")}
+              />
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {availableRides.map((ride) => (
-                  <div
-                    key={ride._id}
-                    style={{
-                      border: "1px solid #1a73e8",
-                      borderRadius: "8px",
-                      padding: "15px",
-                      backgroundColor: "#f8fafd",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <div>
-                      <strong>
-                        {ride.pickupLocation} &rarr; {ride.dropoffLocation}
-                      </strong>
-                      <div style={{ fontSize: "14px", marginTop: "4px" }}>
-                        Fare: <strong>₹{ride.fare}</strong> | Customer:{" "}
-                        {ride.customer?.name || "Customer"}
-                      </div>
-                      <small style={{ color: "#666" }}>ID: {ride._id}</small>
-                    </div>
-                    <button
-                      onClick={() => handleAcceptRide(ride._id)}
-                      style={{
-                        backgroundColor: "#34a853",
-                        color: "#fff",
-                        border: "none",
-                        padding: "8px 16px",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Accept Ride 🚕
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <Register
+                onSwitchToLogin={() => setAuthMode("login")}
+                onRegisteredSuccess={() => setAuthMode("login")}
+              />
             )}
           </div>
-
-          <div>
-            <h3>My Assigned Rides</h3>
-            {driverRides.length === 0 ? (
-              <p style={{ color: "#666" }}>You have not accepted any rides yet.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {driverRides.map((ride) => (
-                  <div
-                    key={ride._id}
-                    style={{
-                      border: "1px solid #ccc",
-                      borderRadius: "8px",
-                      padding: "15px",
-                      backgroundColor: "#fafafa",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                      <strong>
-                        {ride.pickupLocation} &rarr; {ride.dropoffLocation}
-                      </strong>
-                      <span
-                        style={{
-                          backgroundColor:
-                            ride.status === "COMPLETED"
-                              ? "#34a853"
-                              : ride.status === "CANCELLED"
-                              ? "#ea4335"
-                              : "#1a73e8",
-                          color: "#fff",
-                          padding: "3px 8px",
-                          borderRadius: "4px",
-                          fontSize: "12px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {ride.status}
-                      </span>
-                    </div>
-
-                    <div style={{ fontSize: "14px", marginBottom: "10px" }}>
-                      Fare: <strong>₹{ride.fare}</strong> | Customer: {ride.customer?.name} ({ride.customer?.email})
-                    </div>
-
-                    <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                      {ride.status === "ACCEPTED" && (
-                        <button
-                          onClick={() => handleUpdateStatus(ride._id, "DRIVER_ARRIVING")}
-                          style={{
-                            backgroundColor: "#fbbc04",
-                            color: "#000",
-                            border: "none",
-                            padding: "6px 14px",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Mark Driver Arriving 📍
-                        </button>
-                      )}
-
-                      {ride.status === "DRIVER_ARRIVING" && (
-                        <button
-                          onClick={() => handleUpdateStatus(ride._id, "IN_PROGRESS")}
-                          style={{
-                            backgroundColor: "#1a73e8",
-                            color: "#fff",
-                            border: "none",
-                            padding: "6px 14px",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Start Ride (In Progress) 🚗
-                        </button>
-                      )}
-
-                      {ride.status === "IN_PROGRESS" && (
-                        <button
-                          onClick={() => handleUpdateStatus(ride._id, "COMPLETED")}
-                          style={{
-                            backgroundColor: "#34a853",
-                            color: "#fff",
-                            border: "none",
-                            padding: "6px 14px",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Complete Ride ✅
-                        </button>
-                      )}
-
-                      {ride.status === "COMPLETED" && (
-                        <span style={{ color: "#34a853", fontWeight: "bold" }}>
-                          ✓ Ride Completed
-                        </span>
-                      )}
-
-                      {ride.status === "CANCELLED" && (
-                        <span style={{ color: "#ea4335", fontWeight: "bold" }}>
-                          🚫 Ride Cancelled
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+        </div>
       )}
     </div>
   );
