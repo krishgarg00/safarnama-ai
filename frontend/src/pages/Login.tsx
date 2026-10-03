@@ -2,7 +2,18 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { loginUser } from "../api/auth";
 
-function Login() {
+export interface LoggedInUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: "CUSTOMER" | "HOST" | "DRIVER" | "ADMIN";
+}
+
+interface LoginProps {
+  onLoginSuccess?: (user: LoggedInUser, token: string) => void;
+}
+
+function Login({ onLoginSuccess }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -24,10 +35,13 @@ function Login() {
       console.log("Login response:", result);
 
       localStorage.setItem("token", result.token);
-
       localStorage.setItem("user", JSON.stringify(result.user));
 
       setMessage("Login successful");
+
+      if (onLoginSuccess) {
+        onLoginSuccess(result.user, result.token);
+      }
 
       setEmail("");
       setPassword("");
