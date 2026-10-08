@@ -8,6 +8,8 @@ interface ProfileProps {
   onOpenAuth: () => void;
   onLoginSuccess: (user: LoggedInUser, token: string) => void;
   socketConnected: boolean;
+  onOpenMyBookings: () => void;
+  onOpenHostDashboard: () => void;
 }
 
 export const Profile: React.FC<ProfileProps> = ({
@@ -16,6 +18,8 @@ export const Profile: React.FC<ProfileProps> = ({
   onOpenAuth,
   onLoginSuccess,
   socketConnected,
+  onOpenMyBookings,
+  onOpenHostDashboard,
 }) => {
   const switchAccount = async (email: string) => {
     try {
@@ -69,8 +73,17 @@ export const Profile: React.FC<ProfileProps> = ({
             </div>
           </div>
 
-          <div style={{ marginTop: "28px", borderTop: "1px solid var(--border)", paddingTop: "20px", display: "flex", justifyContent: "flex-end" }}>
-            <button className="btn-secondary" style={{ color: "#dc2626", borderColor: "#fecaca" }} onClick={onLogout}>
+          {/* Quick Action Shortcuts */}
+          <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--border)", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <button className="btn-secondary" onClick={onOpenMyBookings}>
+              🏨 My Stay Reservations
+            </button>
+            {(currentUser.role === "HOST" || currentUser.role === "ADMIN") && (
+              <button className="btn-primary" onClick={onOpenHostDashboard}>
+                🏠 Open Host Dashboard
+              </button>
+            )}
+            <button className="btn-secondary" style={{ color: "#dc2626", borderColor: "#fecaca", marginLeft: "auto" }} onClick={onLogout}>
               Log Out of Travel Nexus
             </button>
           </div>
@@ -94,7 +107,7 @@ export const Profile: React.FC<ProfileProps> = ({
           ⚡ Fast Switch Demo Accounts (Development Helper)
         </h3>
         <p style={{ fontSize: "13px", color: "var(--muted)", marginBottom: "16px" }}>
-          Quickly switch roles to test Customer ride booking, Driver accepting/updating, and Host property ownership.
+          Quickly switch roles to test Customer stay booking, Driver ride progression, and Host property listings.
         </p>
 
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -111,6 +124,13 @@ export const Profile: React.FC<ProfileProps> = ({
             onClick={() => switchAccount("driver@example.com")}
           >
             🚗 Driver (driver@example.com)
+          </button>
+          <button
+            className="btn-secondary"
+            style={{ fontSize: "13px" }}
+            onClick={() => switchAccount("host@example.com")}
+          >
+            🏠 Host (host@example.com)
           </button>
         </div>
       </div>

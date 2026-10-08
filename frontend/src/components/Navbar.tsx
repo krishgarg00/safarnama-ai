@@ -2,7 +2,7 @@ import React from "react";
 import type { LoggedInUser } from "../pages/Login";
 import logoImg from "../assets/logo.png";
 
-export type NavTab = "Home" | "Explore" | "Stays" | "Rides" | "Trips" | "Profile";
+export type NavTab = "Home" | "Explore" | "Stays" | "Rides" | "Trips" | "Profile" | "Host";
 
 interface NavbarProps {
   activeTab: NavTab;
@@ -11,6 +11,7 @@ interface NavbarProps {
   onLogout: () => void;
   onOpenAuth: () => void;
   socketConnected: boolean;
+  onOpenMyBookings: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -20,6 +21,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   onOpenAuth,
   socketConnected,
+  onOpenMyBookings,
 }) => {
   const tabs: { id: NavTab; label: string; icon: string }[] = [
     { id: "Home", label: "Home", icon: "🏠" },
@@ -27,6 +29,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: "Stays", label: "Stays", icon: "🏨" },
     { id: "Rides", label: "Rides", icon: "🚗" },
     { id: "Trips", label: "Trips", icon: "✨" },
+    ...(currentUser?.role === "HOST" || currentUser?.role === "ADMIN"
+      ? [{ id: "Host" as NavTab, label: "Host Portal", icon: "🏡" }]
+      : []),
     { id: "Profile", label: "Profile", icon: "👤" },
   ];
 
@@ -74,6 +79,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {currentUser ? (
               <>
+                <button
+                  className="btn-secondary"
+                  onClick={onOpenMyBookings}
+                  style={{ padding: "6px 12px", fontSize: "13px" }}
+                  title="View your confirmed stay bookings"
+                >
+                  🏨 My Bookings
+                </button>
                 <div
                   className="user-chip"
                   onClick={() => onTabChange("Profile")}

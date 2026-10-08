@@ -18,6 +18,10 @@ import Stays from "./pages/Stays";
 import Rides from "./pages/Rides";
 import Trips from "./pages/Trips";
 import Profile from "./pages/Profile";
+import HostDashboard from "./pages/HostDashboard";
+import StayDetailsModal from "./components/StayDetailsModal";
+import BookingCheckoutModal from "./components/BookingCheckoutModal";
+import MyBookingsModal from "./components/MyBookingsModal";
 import Login, { type LoggedInUser } from "./pages/Login";
 import Register from "./pages/Register";
 import "./App.css";
@@ -32,11 +36,27 @@ interface RideUpdatePayload {
   message: string;
 }
 
+interface CheckoutData {
+  stay: StayItem;
+  checkIn: string;
+  checkOut: string;
+  guests: number;
+  nights: number;
+  stayPrice: number;
+  taxes: number;
+  totalPrice: number;
+}
+
 export function App() {
   const [activeTab, setActiveTab] = useState<NavTab>("Home");
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [prefillRideDestination, setPrefillRideDestination] = useState<string>("");
+
+  // Stay Details & Booking Flow State
+  const [selectedStayForDetails, setSelectedStayForDetails] = useState<StayItem | null>(null);
+  const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
+  const [showMyBookings, setShowMyBookings] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<LoggedInUser | null>(() => {
     const stored = localStorage.getItem("user");
@@ -113,7 +133,6 @@ export function App() {
       console.log("🚗 Ride update received:", data);
       setRideUpdate(data);
 
-      // Optimistically update existing rides list
       setRides((prevRides) =>
         prevRides.map((ride) =>
           ride._id === data.rideId
@@ -122,7 +141,6 @@ export function App() {
         ),
       );
 
-      // Reload full ride details from backend
       loadRidesData();
     };
 
@@ -191,11 +209,9 @@ export function App() {
     setActiveTab("Rides");
   };
 
-  // Preview booking trigger
-  const handleBookStay = (stay: StayItem) => {
-    alert(
-      `🎉 You selected "${stay.title}" (₹${stay.pricePerNight}/night) in ${stay.city}!\n\nFull Booking & Payment workflow will be integrated in Phase 3. You can also coordinate a ride directly to this stay!`
-    );
+  // Open details modal for booking
+  const handleOpenStayBooking = (stay: StayItem) => {
+    setSelectedStayForDetails(stay);
   };
 
   return (
@@ -211,6 +227,14 @@ export function App() {
           setShowAuthModal(true);
         }}
         socketConnected={socketConnected}
+        onOpenMyBookings={() => {
+          if (!currentUser) {
+            setAuthMode("login");
+            setShowAuthModal(true);
+          } else {
+            setShowMyBookings(true);
+          }
+        }}
       />
 
       {/* Main Content Pages */}
@@ -219,7 +243,7 @@ export function App() {
           <Home
             onNavigate={(tab) => setActiveTab(tab)}
             onRideToStay={handleRideToStay}
-            onBookStay={handleBookStay}
+            onBookStay={handleOpenStayBooking}
           />
         )}
 
@@ -235,7 +259,7 @@ export function App() {
         {activeTab === "Stays" && (
           <Stays
             onRideToStay={handleRideToStay}
-            onBookStay={handleBookStay}
+            onBookStay={handleOpenStayBooking}
           />
         )}
 
@@ -269,6 +293,16 @@ export function App() {
           />
         )}
 
+        {activeTab === "Host" && (
+          <HostDashboard
+            currentUser={currentUser}
+            onOpenAuth={() => {
+              setAuthMode("login");
+              setShowAuthModal(true);
+            }}
+          />
+        )}
+
         {activeTab === "Profile" && (
           <Profile
             currentUser={currentUser}
@@ -281,12 +315,59 @@ export function App() {
               setCurrentUser(user);
             }}
             socketConnected={socketConnected}
+            onOpenMyBookings={() => setShowMyBookings(true)}
+            onOpenHostDashboard={() => setActiveTab("Host")}
           />
         )}
       </main>
 
       {/* Footer */}
       <Footer onNavClick={(tab) => setActiveTab(tab)} />
+
+      {/* Stay Details Modal */}
+      {selectedStayForDetails && (
+        <StayDetailsModal
+          stay={selectedStayForDetails}
+          onClose={() => setSelectedStayForDetails(null)}
+          onRideToStay={handleRideToStay}
+          onProceedToBooking={(bData) => {
+            if (!currentUser) {
+              setSelectedStayForDetails(null);
+              setAuthMode("login");
+              setShowAuthModal(true);
+              return;
+            }
+            setSelectedStayForDetails(null);
+            setCheckoutData(bData);
+          }}
+        />
+      )}
+
+      {/* Booking Checkout & Payment Simulation Modal */}
+      {checkoutData && (
+        <BookingCheckoutModal
+          data={checkoutData}
+          onClose={() => setCheckoutData(null)}
+          onBookingConfirmed={() => {
+            // refresh data if needed
+          }}
+          onCoordinateRide={(stay) => {
+            setCheckoutData(null);
+            handleRideToStay(stay);
+          }}
+        />
+      )}
+
+      {/* Customer Reservations List Modal */}
+      {showMyBookings && (
+        <MyBookingsModal
+          onClose={() => setShowMyBookings(false)}
+          onCoordinateRide={(stay) => {
+            setShowMyBookings(false);
+            handleRideToStay(stay);
+          }}
+        />
+      )}
 
       {/* Auth Modal Backdrop */}
       {showAuthModal && (
@@ -299,7 +380,7 @@ export function App() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 1000,
+            zIndex: 1200,
             padding: "20px",
           }}
           onClick={(e) => {

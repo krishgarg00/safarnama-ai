@@ -28,6 +28,18 @@ export interface StayFilters {
   amenities?: string[];
 }
 
+export interface CreateStayData {
+  title: string;
+  description: string;
+  city: string;
+  state: string;
+  address: string;
+  pricePerNight: number;
+  maxGuests: number;
+  amenities?: string[];
+  images?: string[];
+}
+
 export const getStays = async (filters: StayFilters = {}): Promise<{ success: boolean; stays: StayItem[] }> => {
   const queryParams = new URLSearchParams();
 
@@ -47,4 +59,24 @@ export const getStays = async (filters: StayFilters = {}): Promise<{ success: bo
 
 export const getStayById = async (id: string): Promise<{ success: boolean; stay: StayItem }> => {
   return apiRequest(`/stays/${id}`);
+};
+
+export const createStay = async (data: CreateStayData): Promise<{ success: boolean; stay: StayItem }> => {
+  return apiRequest("/stays", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+export const updateStay = async (id: string, data: Partial<CreateStayData>): Promise<{ success: boolean; stay: StayItem }> => {
+  return apiRequest(`/stays/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+};
+
+export const deleteStay = async (id: string): Promise<{ success: boolean; message: string }> => {
+  return apiRequest(`/stays/${id}`, {
+    method: "DELETE",
+  });
 };
