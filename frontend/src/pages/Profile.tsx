@@ -10,6 +10,7 @@ interface ProfileProps {
   socketConnected: boolean;
   onOpenMyBookings: () => void;
   onOpenHostDashboard: () => void;
+  onOpenDriverDashboard: () => void;
 }
 
 export const Profile: React.FC<ProfileProps> = ({
@@ -20,6 +21,7 @@ export const Profile: React.FC<ProfileProps> = ({
   socketConnected,
   onOpenMyBookings,
   onOpenHostDashboard,
+  onOpenDriverDashboard,
 }) => {
   const switchAccount = async (email: string) => {
     try {
@@ -81,6 +83,11 @@ export const Profile: React.FC<ProfileProps> = ({
             {(currentUser.role === "HOST" || currentUser.role === "ADMIN") && (
               <button className="btn-primary" onClick={onOpenHostDashboard}>
                 🏠 Open Host Dashboard
+              </button>
+            )}
+            {(currentUser.role === "DRIVER" || currentUser.role === "ADMIN") && (
+              <button className="btn-primary" onClick={onOpenDriverDashboard}>
+                🚕 Open Driver Console
               </button>
             )}
             <button className="btn-secondary" style={{ color: "#dc2626", borderColor: "#fecaca", marginLeft: "auto" }} onClick={onLogout}>

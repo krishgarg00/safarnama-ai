@@ -2,7 +2,7 @@ import React from "react";
 import type { LoggedInUser } from "../pages/Login";
 import logoImg from "../assets/logo.png";
 
-export type NavTab = "Home" | "Explore" | "Stays" | "Rides" | "Trips" | "Profile" | "Host";
+export type NavTab = "Home" | "Explore" | "Stays" | "Rides" | "Trips" | "Profile" | "Host" | "Driver";
 
 interface NavbarProps {
   activeTab: NavTab;
@@ -31,6 +31,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: "Trips", label: "Trips", icon: "✨" },
     ...(currentUser?.role === "HOST" || currentUser?.role === "ADMIN"
       ? [{ id: "Host" as NavTab, label: "Host Portal", icon: "🏡" }]
+      : []),
+    ...(currentUser?.role === "DRIVER" || currentUser?.role === "ADMIN"
+      ? [{ id: "Driver" as NavTab, label: "Driver Console", icon: "🚕" }]
       : []),
     { id: "Profile", label: "Profile", icon: "👤" },
   ];

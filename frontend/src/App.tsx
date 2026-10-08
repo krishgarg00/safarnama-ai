@@ -19,6 +19,7 @@ import Rides from "./pages/Rides";
 import Trips from "./pages/Trips";
 import Profile from "./pages/Profile";
 import HostDashboard from "./pages/HostDashboard";
+import DriverDashboard from "./pages/DriverDashboard";
 import StayDetailsModal from "./components/StayDetailsModal";
 import BookingCheckoutModal from "./components/BookingCheckoutModal";
 import MyBookingsModal from "./components/MyBookingsModal";
@@ -303,6 +304,23 @@ export function App() {
           />
         )}
 
+        {activeTab === "Driver" && (
+          <DriverDashboard
+            currentUser={currentUser}
+            availableRides={availableRides}
+            driverRides={driverRides}
+            onAcceptRide={handleAcceptRide}
+            onUpdateStatus={handleUpdateStatus}
+            onCancelRide={handleCancelRide}
+            onRefreshRides={loadRidesData}
+            onOpenAuth={() => {
+              setAuthMode("login");
+              setShowAuthModal(true);
+            }}
+            socketConnected={socketConnected}
+          />
+        )}
+
         {activeTab === "Profile" && (
           <Profile
             currentUser={currentUser}
@@ -317,6 +335,7 @@ export function App() {
             socketConnected={socketConnected}
             onOpenMyBookings={() => setShowMyBookings(true)}
             onOpenHostDashboard={() => setActiveTab("Host")}
+            onOpenDriverDashboard={() => setActiveTab("Driver")}
           />
         )}
       </main>
