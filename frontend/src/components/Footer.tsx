@@ -1,5 +1,6 @@
 import React from "react";
 import type { NavTab } from "./Navbar";
+import logoImg from "../assets/logo.png";
 
 interface FooterProps {
   onNavClick: (tab: NavTab) => void;
@@ -11,14 +12,21 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
       <div className="container">
         <div className="footer-inner">
           <div className="footer-col">
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-              <span style={{ fontSize: "22px" }}>🧭</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <img
+                src={logoImg}
+                alt="Travel Nexus"
+                style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover" }}
+              />
               <span style={{ fontSize: "20px", fontWeight: 800 }}>
-                Safarnama<span style={{ color: "var(--primary)" }}>AI</span>
+                TRAVEL <span style={{ color: "var(--primary)" }}>NEXUS</span>
               </span>
             </div>
-            <p style={{ color: "#94a3b8", fontSize: "14px", lineHeight: "1.6", maxWidth: "340px" }}>
-              The unified AI travel platform bringing stays, on-demand rides, and intelligent trip planning together in one seamless experience.
+            <p style={{ color: "#94a3b8", fontSize: "14px", lineHeight: "1.6", maxWidth: "340px", marginBottom: "8px" }}>
+              <strong>Travel. Connect. Explore.</strong>
+            </p>
+            <p style={{ color: "#64748b", fontSize: "13px", lineHeight: "1.5", maxWidth: "340px" }}>
+              The unified travel platform bringing stays, on-demand rides, and intelligent trip planning together in one connected experience.
             </p>
           </div>
 
@@ -81,9 +89,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
         </div>
 
         <div className="footer-bottom">
-          <div>&copy; {new Date().getFullYear()} Safarnama AI. All rights reserved.</div>
+          <div>&copy; {new Date().getFullYear()} Travel Nexus. All rights reserved. &bull; Plan. Ride. Stay. Explore.</div>
           <div style={{ display: "flex", gap: "16px" }}>
-            <span>Built with ❤️ for Indian Travelers</span>
+            <span>Built with ❤️ for Global Travelers</span>
           </div>
         </div>
       </div>

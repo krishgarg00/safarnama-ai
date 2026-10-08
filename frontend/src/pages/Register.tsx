@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { registerUser } from "../api/auth";
+import logoImg from "../assets/logo.png";
 
 interface RegisterProps {
   onSwitchToLogin?: () => void;
@@ -51,9 +52,18 @@ function Register({ onSwitchToLogin, onRegisteredSuccess }: RegisterProps) {
   return (
     <div className="auth-container">
       <div className="auth-header">
-        <div style={{ fontSize: "36px", marginBottom: "8px" }}>🚀</div>
-        <h2>Create Your Account</h2>
-        <p>Join Safarnama AI to experience seamless stays and rides</p>
+        <img
+          src={logoImg}
+          alt="Travel Nexus"
+          style={{ width: "64px", height: "64px", borderRadius: "50%", marginBottom: "10px", objectFit: "cover" }}
+        />
+        <h2>Create Your Travel Nexus Account</h2>
+        <p style={{ fontWeight: 600, color: "var(--primary)", marginTop: "2px" }}>
+          Travel. Connect. Explore.
+        </p>
+        <p style={{ fontSize: "13px", marginTop: "4px" }}>
+          Join the unified travel platform: Plan. Ride. Stay.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit}>

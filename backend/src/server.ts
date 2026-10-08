@@ -36,7 +36,7 @@ io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
   socket.emit("welcome", {
-    message: "Welcome to Safarnama AI real-time server 🚀",
+    message: "Welcome to Travel Nexus real-time server 🚀",
   });
 
   socket.on("join-user-room", (userId: string) => {
@@ -58,7 +58,7 @@ const PORT = process.env.PORT || 5000;
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "Safarnama AI API is running 🚀",
+    message: "Travel Nexus API is running 🚀",
   });
 });
 
@@ -77,7 +77,7 @@ const startServer = async (): Promise<void> => {
 
     httpServer.listen(PORT, () => {
       console.log(
-        `Safarnama AI backend running on http://localhost:${PORT}`
+        `Travel Nexus backend running on http://localhost:${PORT}`
       );
     });
   } catch (error) {

@@ -52,7 +52,7 @@ function waitForEvent(socket, eventName, timeoutMs = 7000) {
 
 async function main() {
   console.log("==================================================");
-  console.log("🚀 SAFARNAMA AI - REAL-TIME RIDE LIFECYCLE TEST");
+  console.log("🚀 TRAVEL NEXUS - REAL-TIME RIDE LIFECYCLE TEST");
   console.log("==================================================");
 
   // 1. Health check

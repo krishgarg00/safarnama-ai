@@ -71,7 +71,7 @@ export const Profile: React.FC<ProfileProps> = ({
 
           <div style={{ marginTop: "28px", borderTop: "1px solid var(--border)", paddingTop: "20px", display: "flex", justifyContent: "flex-end" }}>
             <button className="btn-secondary" style={{ color: "#dc2626", borderColor: "#fecaca" }} onClick={onLogout}>
-              Log Out of Safarnama
+              Log Out of Travel Nexus
             </button>
           </div>
         </div>

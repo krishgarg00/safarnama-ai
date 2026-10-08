@@ -18,8 +18,8 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, onSearchStayInDestinat
       day: "Day 1",
       title: "Arrival, Mountain Check-in & Old Manali Stroll",
       activities: [
-        "Check-in at Mountain View Homestay (coordinated via Safarnama Stay)",
-        "Book doorstep cab from Bhuntar Airport to stay (Safarnama Ride ₹800)",
+        "Check-in at Mountain View Homestay (coordinated via Travel Nexus Stay)",
+        "Book doorstep cab from Bhuntar Airport to stay (Travel Nexus Ride ₹800)",
         "Evening walk along Mall Road, cafe hopping, and local Himachali Siddu tasting",
       ],
       estimatedCost: "₹3,200",
@@ -28,7 +28,7 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, onSearchStayInDestinat
       day: "Day 2",
       title: "Solang Valley Thrills & Snow Activities",
       activities: [
-        "Morning drive to Solang Valley via pre-booked Safarnama cab",
+        "Morning drive to Solang Valley via pre-booked Travel Nexus cab",
         "Paragliding, quad biking, and cable car ride",
         "Hot Maggi & ginger chai with views of the Pir Panjal range",
       ],
@@ -65,7 +65,7 @@ export const Trips: React.FC<TripsProps> = ({ onNavigate, onSearchStayInDestinat
           </span>
           <h1 className="section-title">AI Trip Planner &amp; Itinerary Generator</h1>
           <p className="section-subtitle">
-            Tell Safarnama where you want to go and your budget—AI constructs the complete day-by-day plan with stay and cab suggestions.
+            Tell Travel Nexus where you want to go and your budget—AI constructs the complete day-by-day plan with stay and cab suggestions.
           </p>
         </div>
       </div>

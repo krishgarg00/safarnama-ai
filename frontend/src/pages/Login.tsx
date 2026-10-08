@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { loginUser } from "../api/auth";
+import logoImg from "../assets/logo.png";
 
 export interface LoggedInUser {
   _id: string;
@@ -56,9 +57,18 @@ function Login({ onLoginSuccess, onSwitchToRegister }: LoginProps) {
   return (
     <div className="auth-container">
       <div className="auth-header">
-        <div style={{ fontSize: "36px", marginBottom: "8px" }}>🧭</div>
-        <h2>Sign In to Safarnama AI</h2>
-        <p>Access your stays, rides, and personalized travel itineraries</p>
+        <img
+          src={logoImg}
+          alt="Travel Nexus"
+          style={{ width: "64px", height: "64px", borderRadius: "50%", marginBottom: "10px", objectFit: "cover" }}
+        />
+        <h2>Sign In to Travel Nexus</h2>
+        <p style={{ fontWeight: 600, color: "var(--primary)", marginTop: "2px" }}>
+          Travel. Connect. Explore.
+        </p>
+        <p style={{ fontSize: "13px", marginTop: "4px" }}>
+          Access your stays, real-time rides, and AI itineraries
+        </p>
       </div>
 
       <form onSubmit={handleSubmit}>

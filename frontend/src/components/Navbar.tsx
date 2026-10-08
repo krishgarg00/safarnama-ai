@@ -1,5 +1,6 @@
 import React from "react";
 import type { LoggedInUser } from "../pages/Login";
+import logoImg from "../assets/logo.png";
 
 export type NavTab = "Home" | "Explore" | "Stays" | "Rides" | "Trips" | "Profile";
 
@@ -33,14 +34,14 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className="navbar">
       <div className="container">
         <div className="navbar-inner">
-          {/* Brand Logo */}
+          {/* Brand Logo & Name */}
           <div className="navbar-brand" onClick={() => onTabChange("Home")}>
-            <div className="brand-icon">🧭</div>
+            <img src={logoImg} alt="Travel Nexus" className="brand-logo-img" />
             <div className="brand-text">
               <span className="brand-name">
-                Safarnama<span>AI</span>
+                TRAVEL <span>NEXUS</span>
               </span>
-              <span className="brand-tagline">Unified Travel Ecosystem</span>
+              <span className="brand-tagline">Travel. Connect. Explore.</span>
             </div>
           </div>
 

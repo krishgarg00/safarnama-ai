@@ -36,6 +36,20 @@
   justify-content: center;
 }
 
+.brand-logo-img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid var(--border);
+  transition: transform 0.2s ease;
+}
+
+.navbar-brand:hover .brand-logo-img {
+  transform: scale(1.05);
+}
+
 .brand-text {
   display: flex;
   flex-direction: column;

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import logoImg from "../assets/logo.png";
 
 interface HeroProps {
   onSearch: (query: string, category: string) => void;
@@ -29,16 +30,32 @@ export const Hero: React.FC<HeroProps> = ({
   return (
     <section className="hero-section">
       <div className="container">
+        {/* Travel Nexus Logo Emblem */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+          <img
+            src={logoImg}
+            alt="Travel Nexus"
+            style={{
+              width: "110px",
+              height: "110px",
+              borderRadius: "50%",
+              boxShadow: "var(--shadow-xl)",
+              border: "3px solid white",
+              objectFit: "cover",
+            }}
+          />
+        </div>
+
         <div className="hero-pill">
-          <span>🤖 AI-Powered Travel Assistant Active</span>
+          <span>✈️ PLAN. RIDE. STAY. EXPLORE.</span>
         </div>
 
         <h1 className="hero-title">
-          Where do you want to <span className="gradient-text">go next?</span>
+          Travel. Connect. <span className="gradient-text">Explore.</span>
         </h1>
 
         <p className="hero-subtitle">
-          Discover handpicked stays, hail real-time rides, and plan your journey with intelligent travel assistance in one unified platform.
+          Welcome to <strong>Travel Nexus</strong> — The unified travel ecosystem combining handpicked stays, on-demand real-time rides, and intelligent trip planning into one seamless journey.
         </p>
 
         {/* Search Card */}
