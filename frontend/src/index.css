@@ -240,4 +240,42 @@ input, select, textarea {
   animation: radarRipple 2s linear infinite;
 }
 
+@keyframes aiShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.ai-shimmer-bar {
+  background: linear-gradient(90deg, #0d9488 0%, #38bdf8 50%, #0d9488 100%);
+  background-size: 200% 100%;
+  animation: aiShimmer 2s infinite;
+}
+
+.chat-bubble-ai {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px 16px 16px 4px;
+  padding: 16px;
+  color: #1e293b;
+  max-width: 80%;
+  line-height: 1.6;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.chat-bubble-user {
+  background: #0d9488;
+  color: white;
+  border-radius: 16px 16px 4px 16px;
+  padding: 14px 18px;
+  max-width: 75%;
+  margin-left: auto;
+  line-height: 1.5;
+  box-shadow: 0 2px 4px rgba(13, 148, 136, 0.2);
+}
+
+
 

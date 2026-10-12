@@ -224,6 +224,30 @@ export const StayDetailsModal: React.FC<StayDetailsModalProps> = ({
                 </div>
               </div>
             )}
+
+            {/* AI Review Summary Synthesis */}
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ fontSize: "16px" }}>🤖</span>
+                  <h4 style={{ fontSize: "15px", fontWeight: 700 }}>AI Review Synthesis</h4>
+                </div>
+                <span className="badge badge-success">96% Positive Sentiment</span>
+              </div>
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "var(--dark-muted)",
+                  lineHeight: "1.5",
+                  background: "var(--bg-page)",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                Guests consistently praise this stay for its sparkling cleanliness, authentic wooden architecture, superfast remote-work WiFi, and seamless Travel Nexus cab drop-offs directly to the entrance.
+              </p>
+            </div>
           </div>
 
           {/* Right Booking Card Column */}

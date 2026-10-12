@@ -14,6 +14,7 @@ import reviewRoutes from "./routes/review.routes";
 import rideRoutes from "./routes/ride.routes";
 import stayRoutes from "./routes/stay.routes";
 import userRoutes from "./routes/user.routes";
+import aiRoutes from "./routes/ai.routes";
 
 import { initializeSocket } from "./socket";
 
@@ -70,6 +71,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/rides", rideRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/ai", aiRoutes);
 
 const startServer = async (): Promise<void> => {
   try {

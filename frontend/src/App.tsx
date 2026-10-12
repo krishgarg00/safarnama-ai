@@ -289,7 +289,11 @@ export function App() {
           <Trips
             onNavigate={(tab) => setActiveTab(tab)}
             onSearchStayInDestination={() => {
-              setActiveTab("Home");
+              setActiveTab("Stays");
+            }}
+            onBookCabForTrip={(dropoff) => {
+              setPrefillRideDestination(dropoff);
+              setActiveTab("Rides");
             }}
           />
         )}
