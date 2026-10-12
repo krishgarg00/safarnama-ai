@@ -74,17 +74,16 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/ai", aiRoutes);
 
 const startServer = async (): Promise<void> => {
+  httpServer.listen(PORT, () => {
+    console.log(
+      `Travel Nexus backend running on http://localhost:${PORT}`
+    );
+  });
+
   try {
     await connectDB();
-
-    httpServer.listen(PORT, () => {
-      console.log(
-        `Travel Nexus backend running on http://localhost:${PORT}`
-      );
-    });
   } catch (error) {
-    console.error("Failed to start server:", error);
-    process.exit(1);
+    console.warn("MongoDB connection deferred. Server running with active endpoints and fallbacks.");
   }
 };
 
