@@ -68,6 +68,15 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
+app.get("/", (req: Request, res: Response) => {
+  res.json({
+    name: "Travel Nexus Backend API",
+    status: "online",
+    message: "Travel Nexus Backend Server is running 🚀",
+    healthCheck: "/api/health",
+  });
+});
+
 app.get("/api/health", (req: Request, res: Response) => {
   res.json({
     success: true,
