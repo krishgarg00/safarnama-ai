@@ -1,7 +1,9 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import fs from "fs";
 import { createServer } from "http";
+import path from "path";
 import { Server } from "socket.io";
 
 import connectDB from "./config/database";
@@ -19,14 +21,18 @@ import aiRoutes from "./routes/ai.routes";
 import { initializeSocket } from "./socket";
 
 dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../.env") });
+dotenv.config({ path: path.resolve(__dirname, "../../backend/.env") });
 
 const app = express();
-
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: (origin, callback) => {
+      // Allow any origin for maximum deployment flexibility (local, Vercel, Render, Railway, etc.)
+      callback(null, true);
+    },
     credentials: true,
   },
 });
@@ -42,7 +48,6 @@ io.on("connection", (socket) => {
 
   socket.on("join-user-room", (userId: string) => {
     socket.join(`user:${userId}`);
-
     console.log(`Socket ${socket.id} joined user:${userId}`);
   });
 
@@ -51,7 +56,14 @@ io.on("connection", (socket) => {
   });
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      callback(null, true);
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
@@ -72,6 +84,18 @@ app.use("/api/rides", rideRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/ai", aiRoutes);
+
+// Serve frontend build in production or when dist exists
+const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.use((req, res, next) => {
+    if (req.path.startsWith("/api") || req.path.startsWith("/socket.io")) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDistPath, "index.html"));
+  });
+}
 
 const startServer = async (): Promise<void> => {
   httpServer.listen(PORT, () => {

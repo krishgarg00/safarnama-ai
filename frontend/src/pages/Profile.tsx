@@ -36,7 +36,7 @@ export const Profile: React.FC<ProfileProps> = ({
         _id: `demo_${role.toLowerCase()}_id`,
         name: role === "HOST" ? "Priya Sharma (Host)" : role === "DRIVER" ? "Rajesh Kumar (Driver)" : "Rahul Sharma (Customer)",
         email: email,
-        role: role as any,
+        role: role as LoggedInUser["role"],
       };
       localStorage.setItem("user", JSON.stringify(fallbackUser));
       onLoginSuccess(fallbackUser, `demo_token_${role.toLowerCase()}`);

@@ -41,13 +41,6 @@ export const StayDetailsModal: React.FC<StayDetailsModalProps> = ({
   const [guests, setGuests] = useState(1);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
 
-  if (!stay) return null;
-
-  const images =
-    stay.images && stay.images.length > 0
-      ? stay.images
-      : ["https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"];
-
   // Calculate nights
   const nights = useMemo(() => {
     const d1 = new Date(checkIn);
@@ -55,6 +48,13 @@ export const StayDetailsModal: React.FC<StayDetailsModalProps> = ({
     const diff = Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
     return diff > 0 ? diff : 0;
   }, [checkIn, checkOut]);
+
+  if (!stay) return null;
+
+  const images =
+    stay.images && stay.images.length > 0
+      ? stay.images
+      : ["https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"];
 
   const stayPrice = nights * stay.pricePerNight;
   const taxes = Math.round(stayPrice * 0.12); // 12% GST

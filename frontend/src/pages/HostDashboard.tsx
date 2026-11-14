@@ -29,7 +29,7 @@ export const HostDashboard: React.FC<HostDashboardProps> = ({
       const staysRes = await getStays();
       const allStays = staysRes.stays || [];
       const userStays = allStays.filter(
-        (s) => s.host && (s.host._id === currentUser._id || s.host === (currentUser._id as any))
+        (s) => s.host && (s.host._id === currentUser._id || (s.host as unknown as string) === currentUser._id)
       );
       // If host doesn't have any created stays yet, show all stays they can manage or an empty list
       setMyStays(userStays.length > 0 ? userStays : allStays);

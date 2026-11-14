@@ -26,8 +26,9 @@ import MyBookingsModal from "./components/MyBookingsModal";
 import Login, { type LoggedInUser } from "./pages/Login";
 import Register from "./pages/Register";
 import "./App.css";
+import { BACKEND_URL } from "./config/api";
 
-const socket = io("http://localhost:5000", {
+const socket = io(BACKEND_URL, {
   autoConnect: true,
 });
 

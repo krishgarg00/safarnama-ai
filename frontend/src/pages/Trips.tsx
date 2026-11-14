@@ -70,16 +70,6 @@ export const Trips: React.FC<TripsProps> = ({
     setTimeout(() => setToastMessage(""), 3500);
   };
 
-  // Auto-generate initial itinerary on mount
-  useEffect(() => {
-    handleGenerateItinerary();
-    handleSynthesizeReviews();
-  }, []);
-
-  useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages, chatLoading]);
-
   const handleGenerateItinerary = async () => {
     setLoadingPlan(true);
     try {
@@ -111,12 +101,22 @@ export const Trips: React.FC<TripsProps> = ({
     }
   };
 
+  // Auto-generate initial itinerary on mount
+  useEffect(() => {
+    handleGenerateItinerary();
+    handleSynthesizeReviews();
+  }, []);
+
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages, chatLoading]);
+
   const handleSendChat = async (msgText?: string) => {
     const textToSend = msgText || chatInput;
     if (!textToSend.trim() || chatLoading) return;
 
     const userMsg: ChatMessage = {
-      id: String(Date.now()),
+      id: `user_${Math.random().toString(36).substring(2, 9)}`,
       sender: "user",
       text: textToSend,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -129,7 +129,7 @@ export const Trips: React.FC<TripsProps> = ({
     try {
       const res = await chatWithAiConcierge(textToSend, destination);
       const aiMsg: ChatMessage = {
-        id: String(Date.now() + 1),
+        id: `ai_${Math.random().toString(36).substring(2, 9)}`,
         sender: "ai",
         text: res.reply,
         actions: res.suggestedActions,
@@ -138,7 +138,7 @@ export const Trips: React.FC<TripsProps> = ({
       setChatMessages((prev) => [...prev, aiMsg]);
     } catch {
       const fallbackMsg: ChatMessage = {
-        id: String(Date.now() + 1),
+        id: `ai_${Math.random().toString(36).substring(2, 9)}`,
         sender: "ai",
         text: `Travel Nexus is ready to help you explore **${destination}**! You can book verified homestays or reserve on-demand mountain cabs directly from the platform.`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),

@@ -1,5 +1,5 @@
 import React from "react";
-import { POPULAR_DESTINATIONS } from "../components/PopularDestinations";
+import { POPULAR_DESTINATIONS } from "../data/destinations";
 import type { NavTab } from "../components/Navbar";
 
 interface ExploreProps {
