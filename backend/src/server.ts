@@ -1,6 +1,6 @@
 import cors from "cors";
 import dotenv from "dotenv";
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import fs from "fs";
 import { createServer } from "http";
 import path from "path";
@@ -68,7 +68,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (req: Request, res: Response) => {
   res.json({
     success: true,
     message: "Travel Nexus API is running 🚀",
@@ -89,7 +89,7 @@ app.use("/api/ai", aiRoutes);
 const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
 if (fs.existsSync(frontendDistPath)) {
   app.use(express.static(frontendDistPath));
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith("/api") || req.path.startsWith("/socket.io")) {
       return next();
     }
